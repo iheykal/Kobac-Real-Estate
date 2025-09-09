@@ -127,6 +127,38 @@ export async function generateResetToken(length: number = 32): Promise<string> {
 }
 
 /**
+ * Hashes a reset token for secure storage
+ * @param token - The reset token to hash
+ * @returns Promise<string> - The hashed token
+ */
+export async function hashResetToken(token: string): Promise<string> {
+  try {
+    const crypto = await import('crypto');
+    return crypto.createHash('sha256').update(token).digest('hex');
+  } catch (error) {
+    console.error('Error hashing reset token:', error);
+    throw new Error('Failed to hash reset token');
+  }
+}
+
+/**
+ * Verifies a reset token against its hash
+ * @param token - The plain text token to verify
+ * @param hash - The stored token hash
+ * @returns boolean - True if token matches, false otherwise
+ */
+export function verifyResetToken(token: string, hash: string): boolean {
+  try {
+    const crypto = require('crypto');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    return tokenHash === hash;
+  } catch (error) {
+    console.error('Error verifying reset token:', error);
+    return false;
+  }
+}
+
+/**
  * Normalizes phone number to consistent format
  * @param phone - The phone number to normalize
  * @returns string - Normalized phone number
