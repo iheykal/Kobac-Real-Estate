@@ -110,10 +110,23 @@ export async function hashPassword(password: string): Promise<string> {
  */
 export async function verifyPassword(hash: string, password: string): Promise<boolean> {
   try {
+    console.log('🔐 Password verification started');
+    console.log('🔐 Hash length:', hash?.length);
+    console.log('🔐 Password length:', password?.length);
+    
     const argon2 = (await import('argon2')).default;
-    return await argon2.verify(hash, password);
+    console.log('🔐 Argon2 imported successfully');
+    
+    const result = await argon2.verify(hash, password);
+    console.log('🔐 Password verification result:', result);
+    
+    return result;
   } catch (error) {
-    console.error('Error verifying password:', error);
+    console.error('❌ Error verifying password:', error);
+    console.error('❌ Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return false;
   }
 }

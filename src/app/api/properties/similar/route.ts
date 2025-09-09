@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
     console.log('✅ GET /api/properties/similar - Connected to database');
 
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl;
     const district = searchParams.get('district');
     const excludeId = searchParams.get('excludeId');
     const limit = parseInt(searchParams.get('limit') || '6');
