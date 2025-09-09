@@ -67,17 +67,38 @@ export async function POST(request: NextRequest) {
       }
     }
     
+    // Debug password hash info
+    console.log('🔍 Password hash debug:', {
+      hasPasswordHash: !!user.passwordHash,
+      hashLength: user.passwordHash?.length,
+      hashStart: user.passwordHash?.substring(0, 10),
+      hasLegacyPassword: !!(user as any).password,
+      passwordLength: password?.length
+    });
+    
     // Verify password using constant-time comparison
     const isPasswordValid = await verifyPassword(user.passwordHash, password);
     if (!isPasswordValid) {
       console.log('❌ Password mismatch for user:', normalizedPhone);
+      console.log('🔍 Hash details:', {
+        hash: user.passwordHash?.substring(0, 20) + '...',
+        password: password?.substring(0, 3) + '...'
+      });
       
       // Increment login attempts
       user.security.loginAttempts = (user.security.loginAttempts || 0) + 1;
       await user.save();
       
       return NextResponse.json(
-        { success: false, error: 'Invalid phone number or password' },
+        { 
+          success: false, 
+          error: 'Invalid phone number or password',
+          debug: {
+            hashLength: user.passwordHash?.length,
+            hasLegacyPassword: !!(user as any).password,
+            loginAttempts: user.security.loginAttempts
+          }
+        },
         { status: 401 }
       );
     }
