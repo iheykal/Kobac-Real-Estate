@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-import { verifyPassword, validatePhoneNumber, normalizePhoneNumber } from '@/lib/passwordUtils';
+import { validatePhoneNumber, normalizePhoneNumber } from '@/lib/passwordUtils';
 import { regenerateSession, setSessionCookie } from '@/lib/sessionUtils';
 
 export async function POST(request: NextRequest) {
@@ -79,43 +79,31 @@ export async function POST(request: NextRequest) {
     
     console.log('✅ User found:', user.fullName);
     
-    // Check if user has old plain-text password (migration needed)
-    if (!user.passwordHash && (user as any).password) {
-      console.log('⚠️ User has old plain-text password, checking for legacy numeric password');
-      
-      // Check if it's a legacy numeric password
-      const oldPassword = (user as any).password;
-      if (oldPassword === password) {
-        console.log('✅ Legacy numeric password verified, but migration required');
-        return NextResponse.json(
-          { success: false, error: 'Password reset required. Please use the password reset feature to upgrade your account security.', code: 'PASSWORD_RESET_REQUIRED' },
-          { status: 401 }
-        );
-      } else {
-        console.log('❌ Legacy password mismatch');
-        return NextResponse.json(
-          { success: false, error: 'Invalid phone number or password' },
-          { status: 401 }
-        );
-      }
-    }
-    
-    // Debug password hash info
-    console.log('🔍 Password hash debug:', {
+    // Simple plain password debug info
+    console.log('🔍 Plain password debug:', {
+      hasPlainPassword: !!(user as any).password,
       hasPasswordHash: !!user.passwordHash,
-      hashLength: user.passwordHash?.length,
-      hashStart: user.passwordHash?.substring(0, 10),
-      hasLegacyPassword: !!(user as any).password,
       passwordLength: password?.length
     });
-    
-    // Verify password using constant-time comparison
-    const isPasswordValid = await verifyPassword(user.passwordHash, password);
+
+    // Simple plain password verification
+    let isPasswordValid = false;
+
+    // First try plain password field
+    if ((user as any).password) {
+      isPasswordValid = (user as any).password === password;
+      console.log('✅ Using plain password field');
+    } else if (user.passwordHash) {
+      // Fallback for existing hashed passwords
+      isPasswordValid = user.passwordHash === password;
+      console.log('⚠️ Using passwordHash field as fallback');
+    }
+
     if (!isPasswordValid) {
       console.log('❌ Password mismatch for user:', normalizedPhone);
-      console.log('🔍 Hash details:', {
-        hash: user.passwordHash?.substring(0, 20) + '...',
-        password: password?.substring(0, 3) + '...'
+      console.log('🔍 Password details:', {
+        storedPassword: (user as any).password || user.passwordHash,
+        inputPassword: password
       });
       
       // Increment login attempts
@@ -125,12 +113,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           success: false, 
-          error: 'Invalid phone number or password',
-          debug: {
-            hashLength: user.passwordHash?.length,
-            hasLegacyPassword: !!(user as any).password,
-            loginAttempts: user.security.loginAttempts
-          }
+          error: 'Invalid phone number or password'
         },
         { status: 401 }
       );

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-import { normalizePhoneNumber, hashPassword } from '@/lib/passwordUtils';
+import { normalizePhoneNumber } from '@/lib/passwordUtils';
 import { setSessionCookie, createSessionPayload } from '@/lib/sessionUtils';
 
 export async function POST(request: NextRequest) {
@@ -37,12 +37,11 @@ export async function POST(request: NextRequest) {
     
     console.log('✅ User found:', user.fullName);
     
-    // Hash the new password with bcryptjs
-    const newPasswordHash = await hashPassword(newPassword);
-    console.log('🔐 New password hashed successfully');
+    // Store new password as plain text (no hashing)
+    console.log('🔐 Storing new password as plain text');
     
-    // Update user with new password hash
-    user.passwordHash = newPasswordHash;
+    // Update user with new plain password
+    (user as any).password = newPassword;
     user.passwordChangedAt = new Date();
     user.security.loginAttempts = 0; // Reset login attempts
     user.security.mustChangePassword = false;

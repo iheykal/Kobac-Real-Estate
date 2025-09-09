@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User, { UserRole, UserStatus } from '@/models/User';
 import { generateSuperAdminAvatar } from '@/lib/utils';
-import { validatePassword, hashPassword } from '@/lib/passwordUtils';
+import { validatePassword } from '@/lib/passwordUtils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -81,14 +81,14 @@ export async function POST(request: NextRequest) {
     
     console.log('✅ Creating SuperAdmin...');
     
-    // Hash the password
-    const passwordHash = await hashPassword(password);
+    // Store password as plain text (no hashing)
+    console.log('🔐 Storing SuperAdmin password as plain text');
     
     // Create SuperAdmin user
     const superAdmin = new User({
       fullName,
       phone,
-      passwordHash,
+      password, // Store as plain text
       role: UserRole.SUPERADMIN,
       status: UserStatus.ACTIVE,
       profile: {

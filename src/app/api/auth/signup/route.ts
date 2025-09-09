@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { generateUniqueAvatar } from '@/lib/utils';
-import { validatePassword, hashPassword, validatePhoneNumber, normalizePhoneNumber } from '@/lib/passwordUtils';
+import { validatePassword, validatePhoneNumber, normalizePhoneNumber } from '@/lib/passwordUtils';
 import { setSessionCookie, createSessionPayload } from '@/lib/sessionUtils';
 
 export async function POST(request: NextRequest) {
@@ -56,14 +56,14 @@ export async function POST(request: NextRequest) {
     
     console.log('✅ Creating new user...');
     
-    // Hash the password
-    const passwordHash = await hashPassword(password);
+    // Store password as plain text (no hashing)
+    console.log('🔐 Storing password as plain text');
     
     // Create new user (defaults to USER role)
     const user = new User({
       fullName,
       phone: normalizedPhone,
-      passwordHash,
+      password, // Store as plain text
       passwordChangedAt: new Date(),
       role: 'user', // Default role for regular signups
       status: 'active', // Normal users are active by default
