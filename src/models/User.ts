@@ -21,7 +21,8 @@ export enum UserStatus {
 export interface IUser extends Document {
   fullName: string;
   phone: string;
-  passwordHash: string;
+  passwordHash?: string; // Made optional for plain password support
+  password?: string; // Added for plain password support
   passwordChangedAt: Date;
   role: UserRole;
   status: UserStatus;
@@ -145,7 +146,11 @@ const UserSchema: Schema = new Schema({
   },
   passwordHash: {
     type: String,
-    required: true
+    required: false // Made optional for plain password support
+  },
+  password: {
+    type: String,
+    required: false // Added for plain password support
   },
   passwordChangedAt: {
     type: Date,
@@ -277,6 +282,14 @@ const UserSchema: Schema = new Schema({
   }
 }, {
   timestamps: true
+});
+
+// Validate that at least one password field is provided
+UserSchema.pre('save', function(next) {
+  if (!this.passwordHash && !this.password) {
+    return next(new Error('Either passwordHash or password must be provided'));
+  }
+  next();
 });
 
 // Set permissions based on role (supporting legacy and new role strings)
