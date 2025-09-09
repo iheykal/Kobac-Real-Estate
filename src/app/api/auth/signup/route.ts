@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Validate password strength
-    const passwordError = validatePassword(password, normalizedPhone);
+    const passwordError = await validatePassword(password, normalizedPhone);
     if (passwordError) {
       return NextResponse.json(
         { success: false, error: passwordError },
@@ -111,14 +111,23 @@ export async function POST(request: NextRequest) {
       }
     }, { status: 201 });
     
-    setSessionCookie(response, sessionPayload, process.env.NODE_ENV === 'production');
+    setSessionCookie(response, sessionPayload);
     
     return response;
     
   } catch (error) {
-    console.error('Error during signup:', error);
+    console.error('❌ Error during signup:', error);
+    console.error('❌ Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      error: error
+    });
     return NextResponse.json(
-      { success: false, error: 'Failed to create user account' },
+      { 
+        success: false, 
+        error: 'Failed to create user account',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

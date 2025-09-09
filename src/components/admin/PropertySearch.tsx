@@ -20,6 +20,7 @@ import {
   Eye
 } from 'lucide-react'
 import { DEFAULT_AVATAR_URL } from '@/lib/utils'
+import { getPrimaryImageUrl, getAllImageUrls } from '@/lib/imageUrlResolver'
 
 interface Property {
   _id: string
@@ -190,7 +191,7 @@ export default function PropertySearch() {
     const isLeftSwipe = distance > minSwipeDistance
     const isRightSwipe = distance < -minSwipeDistance
 
-    const totalImages = (property.thumbnailImage ? 1 : 0) + property.images.length
+    const totalImages = getAllImageUrls(property).length
 
     if (isLeftSwipe) {
       handleImageChange(selectedImage < totalImages - 1 ? selectedImage + 1 : 0)
@@ -275,10 +276,8 @@ export default function PropertySearch() {
                   <motion.img
                     key={selectedImage}
                     src={(() => {
-                      const allImages = [];
-                      if (property.thumbnailImage) allImages.push(property.thumbnailImage);
-                      allImages.push(...property.images);
-                      return allImages[selectedImage] || property.thumbnailImage || property.images[0];
+                      const allImages = getAllImageUrls(property);
+                      return allImages[selectedImage] || getPrimaryImageUrl(property);
                     })()}
                     alt={property.title}
                     className="w-full h-full object-cover"
@@ -291,7 +290,7 @@ export default function PropertySearch() {
                   
                   {/* Image Navigation Arrows */}
                   {(() => {
-                    const totalImages = (property.thumbnailImage ? 1 : 0) + property.images.length;
+                    const totalImages = getAllImageUrls(property).length;
                     return totalImages > 1 ? (
                       <>
                         <button
@@ -315,7 +314,7 @@ export default function PropertySearch() {
                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
                     <div className="flex space-x-2">
                       {(() => {
-                        const totalImages = (property.thumbnailImage ? 1 : 0) + property.images.length;
+                        const totalImages = getAllImageUrls(property).length;
                         return Array.from({ length: totalImages }, (_, index) => (
                           <button
                             key={index}
@@ -334,37 +333,19 @@ export default function PropertySearch() {
 
                 {/* Thumbnail Images */}
                 <div className="grid grid-cols-6 gap-2">
-                  {/* Include thumbnail image first */}
-                  {property.thumbnailImage && (
-                    <button
-                      onClick={() => handleImageChange(0)}
-                      className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                        0 === selectedImage 
-                          ? 'border-blue-500' 
-                          : 'border-transparent hover:border-blue-300'
-                      }`}
-                    >
-                      <img
-                        src={property.thumbnailImage}
-                        alt={`${property.title} - Main Image`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  )}
-                  {/* Then include additional images */}
-                  {property.images.map((image, index) => (
+                  {getAllImageUrls(property).map((image, index) => (
                     <button
                       key={index}
-                      onClick={() => handleImageChange(index + (property.thumbnailImage ? 1 : 0))}
+                      onClick={() => handleImageChange(index)}
                       className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                        (index + (property.thumbnailImage ? 1 : 0)) === selectedImage 
+                        index === selectedImage 
                           ? 'border-blue-500' 
                           : 'border-transparent hover:border-blue-300'
                       }`}
                     >
                       <img
                         src={image}
-                        alt={`${property.title} - Image ${index + 2}`}
+                        alt={`${property.title} - Image ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
                     </button>

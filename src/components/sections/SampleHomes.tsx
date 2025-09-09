@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PropertyImageWithWatermarkFixed } from '@/components/ui/PropertyImageWithWatermarkFixed'
 import { cn, formatPrice, formatPhoneNumber, capitalizeName, DEFAULT_AVATAR_URL, getStableAvatarUrl } from '@/lib/utils'
+import { getPrimaryImageUrl } from '@/lib/imageUrlResolver'
 import { PropertyDetail } from './PropertyDetail'
 import { useProperties, FilterOptions } from '@/hooks/useProperties'
 import { propertyEventManager } from '@/lib/propertyEvents'
@@ -545,10 +546,10 @@ export const SampleHomes: React.FC = () => {
     return property._id || property.propertyId || property.id || index
   }
 
-  // Helper function to get property image
+  // Helper function to get property image using resolver
   const getPropertyImage = (property: any) => {
-    const imageUrl = property.thumbnailImage || property.images?.[0] || property.image;
-    console.log('🖼️ Property image URL:', {
+    const imageUrl = getPrimaryImageUrl(property);
+    console.log('🖼️ Property image URL (R2):', {
       propertyId: property.propertyId || property._id,
       title: property.title,
       thumbnailImage: property.thumbnailImage,

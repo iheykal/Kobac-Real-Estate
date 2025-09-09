@@ -6,6 +6,7 @@ import { Bed, Bath, MapPin, Heart, ArrowRight, ExternalLink } from 'lucide-react
 import { Button } from '@/components/ui/Button'
 import { PropertyImageWithWatermark } from '@/components/ui/PropertyImageWithWatermark'
 import { cn, formatPrice, formatPhoneNumber, capitalizeName, DEFAULT_AVATAR_URL } from '@/lib/utils'
+import { getPrimaryImageUrl } from '@/lib/imageUrlResolver'
 
 interface PropertyRecommendationsProps {
   currentProperty: {
@@ -117,9 +118,9 @@ export const PropertyRecommendations: React.FC<PropertyRecommendationsProps> = (
     fetchRecommendations()
   }, [currentProperty.district, currentProperty._id, currentProperty.propertyId])
 
-  // Helper function to get property image
+  // Helper function to get property image using resolver
   const getPropertyImage = (property: RecommendedProperty) => {
-    return property.thumbnailImage || property.images?.[0] || '/icons/bg-1.webp'
+    return getPrimaryImageUrl(property)
   }
 
   // Helper function to get property key

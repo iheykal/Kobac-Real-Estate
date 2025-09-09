@@ -189,18 +189,32 @@ export function normalizePhoneNumber(phone: string): string {
   // Remove all non-digit characters
   const digits = phone.replace(/\D/g, '');
   
+  console.log('🔍 Phone normalization - Input:', phone, 'Digits:', digits);
+  
   // Handle different formats
   if (digits.startsWith('252')) {
     // Already has country code
-    return '+' + digits;
+    const result = '+' + digits;
+    console.log('🔍 Phone normalization - Result (252):', result);
+    return result;
   } else if (digits.startsWith('61') && digits.length === 9) {
     // Somali format without country code
-    return '+252' + digits;
+    const result = '+252' + digits;
+    console.log('🔍 Phone normalization - Result (61):', result);
+    return result;
   } else if (digits.length === 9) {
-    // Assume it's a Somali number
-    return '+252' + digits;
+    // Assume it's a Somali number (9 digits)
+    const result = '+252' + digits;
+    console.log('🔍 Phone normalization - Result (9 digits):', result);
+    return result;
+  } else if (digits.length === 12 && digits.startsWith('252')) {
+    // 12 digits starting with 252 (without +)
+    const result = '+' + digits;
+    console.log('🔍 Phone normalization - Result (12 digits):', result);
+    return result;
   } else {
     // Return as is if we can't determine format
+    console.log('🔍 Phone normalization - Result (as is):', phone);
     return phone;
   }
 }

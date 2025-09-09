@@ -302,10 +302,16 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         
         return true
       } else {
-        alert(result.error || 'Signup failed')
+        const errorMessage = typeof result.error === 'string' ? result.error : 
+                           result.error?.message || 
+                           result.details || 
+                           'Signup failed';
+        console.error('Signup failed:', result);
+        alert(errorMessage);
         return false
       }
     } catch (error) {
+      console.error('Signup error:', error);
       alert('Signup failed. Please try again.')
       return false
     } finally {

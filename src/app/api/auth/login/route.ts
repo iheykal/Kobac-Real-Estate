@@ -34,10 +34,43 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Find user by phone number
-    const user = await User.findOne({ phone: normalizedPhone });
+    // Find user by phone number - try multiple formats
+    let user = await User.findOne({ phone: normalizedPhone });
+    
+    // If not found, try alternative formats
     if (!user) {
-      console.log('❌ User not found:', normalizedPhone);
+      console.log('🔍 User not found with normalized phone, trying alternatives...');
+      
+      // Try without country code
+      const phoneWithoutCountry = phone.replace(/^\+252/, '');
+      if (phoneWithoutCountry !== phone) {
+        user = await User.findOne({ phone: '+252' + phoneWithoutCountry });
+        console.log('🔍 Tried without country code:', '+252' + phoneWithoutCountry, 'Found:', !!user);
+      }
+      
+      // Try with just the digits
+      if (!user) {
+        const phoneDigits = phone.replace(/\D/g, '');
+        if (phoneDigits.length === 9) {
+          user = await User.findOne({ phone: '+252' + phoneDigits });
+          console.log('🔍 Tried with 9 digits:', '+252' + phoneDigits, 'Found:', !!user);
+        }
+      }
+      
+      // Try exact match
+      if (!user) {
+        user = await User.findOne({ phone: phone });
+        console.log('🔍 Tried exact match:', phone, 'Found:', !!user);
+      }
+    }
+    
+    if (!user) {
+      console.log('❌ User not found with any phone format:', {
+        original: phone,
+        normalized: normalizedPhone,
+        withoutCountry: phone.replace(/^\+252/, ''),
+        digits: phone.replace(/\D/g, '')
+      });
       return NextResponse.json(
         { success: false, error: 'Invalid phone number or password' },
         { status: 401 }

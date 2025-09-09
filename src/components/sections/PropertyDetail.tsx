@@ -27,6 +27,7 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { PropertyImageWithWatermarkFixed } from '@/components/ui/PropertyImageWithWatermarkFixed'
 import { PropertyRecommendations } from './PropertyRecommendations'
 import { formatPrice, formatPhoneNumber, formatListingDate, capitalizeName, DEFAULT_AVATAR_URL } from '@/lib/utils'
+import { getPrimaryImageUrl, getAllImageUrls } from '@/lib/imageUrlResolver'
 import FeatureIcon from '@/components/ui/FeatureIcon'
 
 // Safe agent ID resolver function
@@ -363,23 +364,14 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                   <PropertyImageWithWatermarkFixed
                     key={selectedImage}
                     src={(() => {
-                      // Combine thumbnail and additional images, filtering out Uze logos
-                      const allImages = [];
-                      if (property.thumbnailImage && !property.thumbnailImage.includes('uze.png') && !property.thumbnailImage.includes('/icons/')) {
-                        allImages.push(property.thumbnailImage);
-                      }
-                      
-                      // Add additional images, filtering out Uze logos
-                      if (property.images && Array.isArray(property.images)) {
-                        const validAdditionalImages = property.images.filter(img => 
-                          img && !img.includes('uze.png') && !img.includes('/icons/')
-                        );
-                        allImages.push(...validAdditionalImages);
-                      }
+                      // Get all valid images using the resolver, filtering out Uze logos
+                      const allImages = getAllImageUrls(property).filter(img => 
+                        !img.includes('uze.png') && !img.includes('/icons/')
+                      );
                       
                       // Ensure we have valid images and selectedImage is within bounds
                       if (allImages.length === 0) {
-                        return 'https://picsum.photos/800/600?random=1'; // Fallback to placeholder
+                        return getPrimaryImageUrl(property); // Use resolver fallback
                       }
                       
                       // Make sure selectedImage is within valid range
@@ -397,17 +389,10 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                  
                   {/* Image Navigation Arrows */}
                   {(() => {
-                    // Calculate total valid images (same logic as main image selection)
-                    const validImages = [];
-                    if (property.thumbnailImage && !property.thumbnailImage.includes('uze.png') && !property.thumbnailImage.includes('/icons/')) {
-                      validImages.push(property.thumbnailImage);
-                    }
-                    if (property.images && Array.isArray(property.images)) {
-                      const validAdditionalImages = property.images.filter(img => 
-                        img && !img.includes('uze.png') && !img.includes('/icons/')
-                      );
-                      validImages.push(...validAdditionalImages);
-                    }
+                    // Calculate total valid images using resolver
+                    const validImages = getAllImageUrls(property).filter(img => 
+                      !img.includes('uze.png') && !img.includes('/icons/')
+                    );
                     
                     const totalValidImages = validImages.length;
                     return totalValidImages > 1 ? (
@@ -433,17 +418,10 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
                     <div className="flex space-x-2">
                       {(() => {
-                        // Calculate total valid images (same logic as main image selection)
-                        const validImages = [];
-                        if (property.thumbnailImage && !property.thumbnailImage.includes('uze.png') && !property.thumbnailImage.includes('/icons/')) {
-                          validImages.push(property.thumbnailImage);
-                        }
-                        if (property.images && Array.isArray(property.images)) {
-                          const validAdditionalImages = property.images.filter(img => 
-                            img && !img.includes('uze.png') && !img.includes('/icons/')
-                          );
-                          validImages.push(...validAdditionalImages);
-                        }
+                        // Calculate total valid images using resolver
+                        const validImages = getAllImageUrls(property).filter(img => 
+                          !img.includes('uze.png') && !img.includes('/icons/')
+                        );
                         
                         const totalValidImages = validImages.length;
                         return Array.from({ length: totalValidImages }, (_, index) => (
@@ -465,17 +443,10 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                 {/* Thumbnail Images */}
                 <div className="grid grid-cols-6 gap-2">
                   {(() => {
-                    // Calculate valid images (same logic as main image selection)
-                    const validImages = [];
-                    if (property.thumbnailImage && !property.thumbnailImage.includes('uze.png') && !property.thumbnailImage.includes('/icons/')) {
-                      validImages.push(property.thumbnailImage);
-                    }
-                    if (property.images && Array.isArray(property.images)) {
-                      const validAdditionalImages = property.images.filter(img => 
-                        img && !img.includes('uze.png') && !img.includes('/icons/')
-                      );
-                      validImages.push(...validAdditionalImages);
-                    }
+                    // Calculate valid images using resolver
+                    const validImages = getAllImageUrls(property).filter(img => 
+                      !img.includes('uze.png') && !img.includes('/icons/')
+                    );
                     
                     return validImages.map((image, index) => (
                       <button

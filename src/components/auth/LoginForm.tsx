@@ -36,16 +36,18 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp, onClose 
       return
     }
     
-    // Validate phone number format (should have 9 digits)
-    if (!/^\d{9}$/.test(formData.phone)) {
-      alert('Please enter a valid phone number (9 digits)')
+    // More flexible phone number validation
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+    if (phoneDigits.length < 9 || phoneDigits.length > 12) {
+      alert('Please enter a valid phone number (9-12 digits)')
       return
     }
     
     setIsLoading(true)
     
     try {
-      const success = await login('+252' + formData.phone, formData.password)
+      // Let the backend handle phone number normalization
+      const success = await login(formData.phone, formData.password)
       if (success) {
         onClose()
       }
@@ -216,17 +218,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp, onClose 
             <Input
               type="tel"
                   inputMode="numeric"
-                  placeholder=""
+                  placeholder="123456789 or +252123456789"
               value={formData.phone}
                   onChange={(e) => {
-                    // Only allow numbers for the local part
-                    const numbersOnly = e.target.value.replace(/\D/g, '');
-                    // Store just the local number (without country code)
-                    handleInputChange('phone', numbersOnly);
+                    // Allow flexible phone number input
+                    const input = e.target.value;
+                    // Allow digits, +, and spaces for flexibility
+                    const cleaned = input.replace(/[^\d+\s]/g, '');
+                    handleInputChange('phone', cleaned);
                   }}
               required
                   className="h-14 w-full max-w-[500px] mx-auto bg-slate-800/80 border-purple-500/30 text-white placeholder-purple-200/60 rounded-xl focus:border-purple-400 focus:ring-purple-400/20 transition-all duration-300 pl-24"
-                  maxLength={9}
             />
               </div>
             </motion.div>

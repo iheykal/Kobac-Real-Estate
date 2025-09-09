@@ -5,6 +5,38 @@ const nextConfig = {
     serverComponentsExternalPackages: ['mongoose', 'argon2', 'bcryptjs', '@aws-sdk/client-s3', '@aws-sdk/s3-request-presigner', 'formidable', 'sharp'],
   },
   
+  // Image configuration for Cloudflare R2
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.r2.dev',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.r2.cloudflarestorage.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pub-744f24f8a5918e0d996c5ff4009a7adb.r2.dev',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+    // Allow local uploads during transition period
+    domains: ['localhost'],
+  },
+  
   // Optimized webpack config
   webpack: (config, { isServer, dev }) => {
     // Only externalize heavy packages for server in production
