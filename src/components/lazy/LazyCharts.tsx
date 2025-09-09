@@ -4,32 +4,32 @@ import dynamic from 'next/dynamic'
 import { ComponentType } from 'react'
 
 // Lazy load chart components to reduce initial bundle size
-export const LazyPieChart = dynamic(
-  () => import('@/components/charts/PieChart'),
+export const LazyDistrictPieChart = dynamic(
+  () => import('@/components/charts/DistrictPieChart'),
   { 
     ssr: false,
     loading: () => <div className="w-full h-64 bg-gray-100 animate-pulse rounded-lg" />
   }
 ) as ComponentType<any>
 
-export const LazyBarChart = dynamic(
-  () => import('@/components/charts/BarChart'),
+export const LazyListingTypePieChart = dynamic(
+  () => import('@/components/charts/ListingTypePieChart'),
   { 
     ssr: false,
     loading: () => <div className="w-full h-64 bg-gray-100 animate-pulse rounded-lg" />
   }
 ) as ComponentType<any>
 
-export const LazyLineChart = dynamic(
-  () => import('@/components/charts/LineChart'),
+export const LazyPropertyTypePieChart = dynamic(
+  () => import('@/components/charts/PropertyTypePieChart'),
   { 
     ssr: false,
     loading: () => <div className="w-full h-64 bg-gray-100 animate-pulse rounded-lg" />
   }
 ) as ComponentType<any>
 
-export const LazyAreaChart = dynamic(
-  () => import('@/components/charts/AreaChart'),
+export const LazyPropertyViewStats = dynamic(
+  () => import('@/components/charts/PropertyViewStats'),
   { 
     ssr: false,
     loading: () => <div className="w-full h-64 bg-gray-100 animate-pulse rounded-lg" />
