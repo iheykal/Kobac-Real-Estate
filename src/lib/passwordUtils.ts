@@ -254,7 +254,7 @@ export async function analyzePasswordStrength(password: string): Promise<{
     return {
       score: analysis.score,
       feedback: analysis.feedback.suggestions,
-      crackTime: analysis.crack_times_display.offline_slow_hashing_1e4_per_second
+      crackTime: String(analysis.crack_times_display.offline_slow_hashing_1e4_per_second)
     };
   } catch (error) {
     console.error('Error analyzing password strength:', error);
