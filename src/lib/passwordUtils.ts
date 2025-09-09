@@ -88,7 +88,7 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 /**
- * Verifies a password against its hash using constant-time comparison
+ * Verifies a password against its hash with migration support
  * @param hash - The stored password hash
  * @param password - The plain text password to verify
  * @returns Promise<boolean> - True if password matches, false otherwise
@@ -99,13 +99,35 @@ export async function verifyPassword(hash: string, password: string): Promise<bo
     console.log('🔐 Hash length:', hash?.length);
     console.log('🔐 Password length:', password?.length);
     
+    // First try bcryptjs (new system)
     const bcrypt = (await import('bcryptjs')).default;
     console.log('🔐 Bcryptjs imported successfully');
     
-    const result = await bcrypt.compare(password, hash);
-    console.log('🔐 Password verification result:', result);
+    const bcryptResult = await bcrypt.compare(password, hash);
+    console.log('🔐 Bcryptjs verification result:', bcryptResult);
     
-    return result;
+    if (bcryptResult) {
+      return true;
+    }
+    
+    // If bcryptjs fails, try argon2 (legacy system)
+    console.log('🔐 Bcryptjs failed, trying argon2 for legacy support...');
+    try {
+      const argon2 = (await import('argon2')).default;
+      const argon2Result = await argon2.verify(hash, password);
+      console.log('🔐 Argon2 verification result:', argon2Result);
+      
+      if (argon2Result) {
+        console.log('⚠️ Legacy argon2 hash detected - user should update password');
+        return true;
+      }
+    } catch (argon2Error) {
+      console.log('🔐 Argon2 not available or failed:', argon2Error);
+    }
+    
+    console.log('🔐 Password verification failed with both methods');
+    return false;
+    
   } catch (error) {
     console.error('❌ Error verifying password:', error);
     console.error('❌ Error details:', {

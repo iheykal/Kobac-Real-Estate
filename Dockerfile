@@ -3,7 +3,8 @@ FROM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat python3 make g++ && \
+    ln -sf python3 /usr/bin/python
 WORKDIR /app
 
 # Copy package files
@@ -13,7 +14,8 @@ RUN npm install --only=production
 
 # Rebuild the source code only when needed
 FROM base AS builder
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat python3 make g++ && \
+    ln -sf python3 /usr/bin/python
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
