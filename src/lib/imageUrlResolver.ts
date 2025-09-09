@@ -94,7 +94,7 @@ export function getAllImageUrls(property: {
   }
   
   // Remove duplicates and return
-  return [...new Set(urls)];
+  return Array.from(new Set(urls));
 }
 
 /**
