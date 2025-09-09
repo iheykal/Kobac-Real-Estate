@@ -48,7 +48,7 @@ async function connectDB() {
       readPreference: 'secondaryPreferred',
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose: any) => {
       console.log('✅ Connected to MongoDB with optimized settings');
       return mongoose;
     });
