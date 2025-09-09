@@ -52,50 +52,35 @@ export async function validatePassword(password: string, phone?: string, email?:
     return 'Password is too common. Please choose a more unique password.';
   }
 
-  // Prevent phone number in password
+  // Check if password contains phone number
   if (phone) {
-    const cleanPhone = phone.replace(/[^\d]/g, '');
-    if (password.includes(cleanPhone) || cleanPhone.length >= 6 && password.includes(cleanPhone.substring(0, 6))) {
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (phoneDigits.length >= 6 && password.includes(phoneDigits.slice(-6))) {
       return 'Password cannot contain your phone number.';
     }
   }
 
-  // Prevent email username in password
+  // Check if password contains email
   if (email) {
-    const emailUsername = email.split('@')[0].toLowerCase();
-    if (emailUsername.length >= 4 && password.toLowerCase().includes(emailUsername)) {
-      return 'Password cannot contain your email username.';
+    const emailLocal = email.split('@')[0];
+    if (emailLocal.length >= 4 && password.toLowerCase().includes(emailLocal.toLowerCase())) {
+      return 'Password cannot contain your email address.';
     }
-  }
-
-  // Relaxed password strength check - only require score 1 instead of 3
-  const zxcvbn = (await import('zxcvbn')).default;
-  const result = zxcvbn(password);
-  if (result.score < 1) {
-    const feedback = result.feedback.suggestions.length > 0 
-      ? ` ${result.feedback.suggestions[0]}` 
-      : '';
-    return `Password is too weak.${feedback}`;
   }
 
   return null; // Password is valid
 }
 
 /**
- * Hashes a password using Argon2id
- * @param password - The plain text password
+ * Hashes a password using bcryptjs
+ * @param password - The plain text password to hash
  * @returns Promise<string> - The hashed password
  */
 export async function hashPassword(password: string): Promise<string> {
   try {
-    const argon2 = (await import('argon2')).default;
-    return await argon2.hash(password, {
-      type: argon2.argon2id,
-      timeCost: 2,
-      memoryCost: 19456, // ~19MB
-      parallelism: 1,
-      hashLength: 32
-    });
+    const bcrypt = (await import('bcryptjs')).default;
+    const saltRounds = 12; // Higher than default for better security
+    return await bcrypt.hash(password, saltRounds);
   } catch (error) {
     console.error('Error hashing password:', error);
     throw new Error('Failed to hash password');
@@ -114,10 +99,10 @@ export async function verifyPassword(hash: string, password: string): Promise<bo
     console.log('🔐 Hash length:', hash?.length);
     console.log('🔐 Password length:', password?.length);
     
-    const argon2 = (await import('argon2')).default;
-    console.log('🔐 Argon2 imported successfully');
+    const bcrypt = (await import('bcryptjs')).default;
+    console.log('🔐 Bcryptjs imported successfully');
     
-    const result = await argon2.verify(hash, password);
+    const result = await bcrypt.compare(password, hash);
     console.log('🔐 Password verification result:', result);
     
     return result;
@@ -142,22 +127,28 @@ export async function generateResetToken(length: number = 32): Promise<string> {
 }
 
 /**
- * Hashes a reset token for secure storage
- * @param token - The plain reset token
- * @returns Promise<string> - The hashed token
+ * Normalizes phone number to consistent format
+ * @param phone - The phone number to normalize
+ * @returns string - Normalized phone number
  */
-export async function hashResetToken(token: string): Promise<string> {
-  return await hashPassword(token); // Reuse password hashing for tokens
-}
-
-/**
- * Verifies a reset token against its hash
- * @param hash - The stored token hash
- * @param token - The plain token to verify
- * @returns Promise<boolean> - True if token matches, false otherwise
- */
-export async function verifyResetToken(hash: string, token: string): Promise<boolean> {
-  return await verifyPassword(hash, token);
+export function normalizePhoneNumber(phone: string): string {
+  // Remove all non-digit characters
+  const digits = phone.replace(/\D/g, '');
+  
+  // Handle different formats
+  if (digits.startsWith('252')) {
+    // Already has country code
+    return '+' + digits;
+  } else if (digits.startsWith('61') && digits.length === 9) {
+    // Somali format without country code
+    return '+252' + digits;
+  } else if (digits.length === 9) {
+    // Assume it's a Somali number
+    return '+252' + digits;
+  } else {
+    // Return as is if we can't determine format
+    return phone;
+  }
 }
 
 /**
@@ -166,29 +157,79 @@ export async function verifyResetToken(hash: string, token: string): Promise<boo
  * @returns boolean - True if valid, false otherwise
  */
 export function validatePhoneNumber(phone: string): boolean {
-  // Somali phone number format: +252XXXXXXXXX (9 digits after +252)
-  const phoneRegex = /^\+252\d{9}$/;
-  return phoneRegex.test(phone);
+  // Remove all non-digit characters
+  const digits = phone.replace(/\D/g, '');
+  
+  // Check if it's a valid Somali phone number
+  // Somali numbers: +252 + 9 digits
+  if (phone.startsWith('+252') && digits.length === 12) {
+    return true;
+  }
+  
+  // Check if it's 9 digits (without country code)
+  if (digits.length === 9) {
+    return true;
+  }
+  
+  return false;
 }
 
 /**
- * Normalizes phone number format
- * @param phone - The phone number to normalize
- * @returns string - The normalized phone number
+ * Generates a secure random password
+ * @param length - Length of the password (default: 12)
+ * @returns string - Generated password
  */
-export function normalizePhoneNumber(phone: string): string {
-  // Remove all non-digit characters except +
-  const cleaned = phone.replace(/[^\d+]/g, '');
+export async function generateSecurePassword(length: number = 12): Promise<string> {
+  const crypto = await import('crypto');
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+  let password = '';
   
-  // If it starts with 252, add +
-  if (cleaned.startsWith('252') && cleaned.length === 12) {
-    return '+' + cleaned;
+  for (let i = 0; i < length; i++) {
+    const randomIndex = crypto.randomInt(0, charset.length);
+    password += charset[randomIndex];
   }
   
-  // If it's missing +252 prefix, add it
-  if (cleaned.length === 9 && !cleaned.startsWith('+')) {
-    return '+252' + cleaned;
-  }
+  return password;
+}
+
+/**
+ * Checks if a password needs to be updated (for security policies)
+ * @param hash - The current password hash
+ * @param lastChanged - When the password was last changed
+ * @returns boolean - True if password should be updated
+ */
+export function shouldUpdatePassword(lastChanged: Date): boolean {
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
   
-  return cleaned;
+  return lastChanged < sixMonthsAgo;
+}
+
+/**
+ * Estimates password strength using zxcvbn
+ * @param password - The password to analyze
+ * @returns Promise<object> - Password strength analysis
+ */
+export async function analyzePasswordStrength(password: string): Promise<{
+  score: number;
+  feedback: string[];
+  crackTime: string;
+}> {
+  try {
+    const zxcvbn = (await import('zxcvbn')).default;
+    const analysis = zxcvbn(password);
+    
+    return {
+      score: analysis.score,
+      feedback: analysis.feedback.suggestions,
+      crackTime: analysis.crack_times_display.offline_slow_hashing_1e4_per_second
+    };
+  } catch (error) {
+    console.error('Error analyzing password strength:', error);
+    return {
+      score: 0,
+      feedback: ['Unable to analyze password strength'],
+      crackTime: 'Unknown'
+    };
+  }
 }

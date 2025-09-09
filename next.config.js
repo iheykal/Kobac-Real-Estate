@@ -2,7 +2,7 @@
 const nextConfig = {
   // Enable experimental features properly
   experimental: {
-    serverComponentsExternalPackages: ['mongoose', 'argon2', '@aws-sdk/client-s3', '@aws-sdk/s3-request-presigner', 'formidable', 'sharp'],
+    serverComponentsExternalPackages: ['mongoose', 'bcryptjs', '@aws-sdk/client-s3', '@aws-sdk/s3-request-presigner', 'formidable', 'sharp'],
   },
   
   // Optimized webpack config
@@ -12,7 +12,7 @@ const nextConfig = {
       config.externals = config.externals || [];
       config.externals.push({
         'mongoose': 'commonjs mongoose',
-        'argon2': 'commonjs argon2',
+        'bcryptjs': 'commonjs bcryptjs',
         '@aws-sdk/client-s3': 'commonjs @aws-sdk/client-s3',
         '@aws-sdk/s3-request-presigner': 'commonjs @aws-sdk/s3-request-presigner',
         'formidable': 'commonjs formidable',
