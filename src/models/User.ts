@@ -284,10 +284,13 @@ const UserSchema: Schema = new Schema({
   timestamps: true
 });
 
-// Validate that at least one password field is provided
+// Validate that at least one password field is provided (only for new documents)
 UserSchema.pre('save', function(next) {
-  if (!this.passwordHash && !this.password) {
-    return next(new Error('Either passwordHash or password must be provided'));
+  // Only validate for new documents
+  if (this.isNew) {
+    if (!this.passwordHash && !this.password) {
+      return next(new Error('Either passwordHash or password must be provided for new users'));
+    }
   }
   next();
 });
