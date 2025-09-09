@@ -9,9 +9,9 @@ export const lazyLoadMongoose = async () => {
   return mongoose.default;
 };
 
-export const lazyLoadArgon2 = async () => {
-  const argon2 = await import('argon2');
-  return argon2.default;
+export const lazyLoadBcryptjs = async () => {
+  const bcryptjs = await import('bcryptjs');
+  return bcryptjs.default;
 };
 
 export const lazyLoadAWS = async () => {

@@ -17,16 +17,16 @@ export async function getMongoose() {
 }
 
 /**
- * Dynamically import argon2 with caching
+ * Dynamically import bcryptjs with caching
  */
-export async function getArgon2() {
-  if (importCache.has('argon2')) {
-    return importCache.get('argon2');
+export async function getBcryptjs() {
+  if (importCache.has('bcryptjs')) {
+    return importCache.get('bcryptjs');
   }
   
-  const argon2 = await import('argon2');
-  importCache.set('argon2', argon2);
-  return argon2;
+  const bcryptjs = await import('bcryptjs');
+  importCache.set('bcryptjs', bcryptjs);
+  return bcryptjs;
 }
 
 /**
