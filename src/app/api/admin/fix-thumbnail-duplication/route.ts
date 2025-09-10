@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Finding properties with images...')
     const properties = await Property.find({
       $and: [
-        { thumbnailImage: { $exists: true, $ne: null, $ne: '' } },
+        { thumbnailImage: { $exists: true, $nin: [null, ''] } },
         { images: { $exists: true, $ne: null, $not: { $size: 0 } } }
       ]
     })
