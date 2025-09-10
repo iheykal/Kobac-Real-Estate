@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const featured = searchParams.get('featured');
     const limit = parseInt(searchParams.get('limit') || '10');
+    const sort = searchParams.get('sort'); // e.g., 'latest'
     const agentId = searchParams.get('agentId');
     const listingType = searchParams.get('listingType');
     const district = searchParams.get('district');
@@ -54,6 +55,10 @@ export async function GET(request: NextRequest) {
     if (session) {
       const authFilter = createListFilter(session.role, 'read', 'property', session.userId);
       query = { ...query, ...authFilter };
+    } else {
+      // For anonymous users, show all public properties (no additional filter needed)
+      // The base query already filters out deleted properties
+      console.log('🔍 Anonymous user - showing all public properties');
     }
     
     if (featured === 'true') {
@@ -77,10 +82,21 @@ export async function GET(request: NextRequest) {
     
     // Optimize query for dashboard loading
     const isDashboardRequest = limit <= 10; // Dashboard requests are small
+    const isMobileOptimized = request.headers.get('x-mobile-optimized') === 'true';
     
+    // Determine sort order: default by engagement, or latest first if requested
+    const sortOption = sort === 'latest' 
+      ? { createdAt: -1 }
+      : { uniqueViewCount: -1, createdAt: -1 };
+
+    // Mobile-optimized field selection
+    const selectFields = isMobileOptimized 
+      ? 'propertyId title location district price beds baths sqft propertyType listingType status thumbnailImage agentId createdAt viewCount uniqueViewCount deletionStatus'
+      : 'propertyId title location district price beds baths sqft yearBuilt lotSize propertyType listingType measurement status description features amenities thumbnailImage images agentId createdAt viewCount uniqueViewCount agent deletionStatus';
+
     let propertiesQuery = Property.find(query)
-      .select('propertyId title location district price beds baths sqft yearBuilt lotSize propertyType listingType measurement status description features amenities thumbnailImage images agentId createdAt viewCount uniqueViewCount agent deletionStatus')
-      .sort({ uniqueViewCount: -1, createdAt: -1 });
+      .select(selectFields)
+      .sort(sortOption);
     
     // Only populate agent data for non-dashboard requests to improve performance
     if (!isDashboardRequest) {
@@ -92,6 +108,18 @@ export async function GET(request: NextRequest) {
     }
     
     const properties = await propertiesQuery;
+    
+    console.log('🔍 Properties query results:', {
+      query: query,
+      propertiesFound: properties.length,
+      sampleProperty: properties[0] ? {
+        _id: properties[0]._id,
+        title: properties[0].title,
+        district: properties[0].district,
+        deletionStatus: properties[0].deletionStatus,
+        agentId: properties[0].agentId
+      } : null
+    });
     
     // Only do expensive count queries for non-dashboard requests
     if (!isDashboardRequest) {
@@ -415,7 +443,7 @@ export async function POST(request: NextRequest) {
       description: sanitizedData.description,
       features: Array.isArray(sanitizedData.features) ? sanitizedData.features : [],
       amenities: Array.isArray(sanitizedData.amenities) ? sanitizedData.amenities : [],
-      thumbnailImage: sanitizedData.thumbnailImage || 'https://picsum.photos/400/300?random=1',
+      thumbnailImage: sanitizedData.thumbnailImage || '',
       images: imagesArray,
       agent: agentData,
       deletionStatus: 'active'
@@ -450,6 +478,17 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    
+    // Debug: Log the property data being saved
+    console.log('🔍 Property data being saved:', {
+      thumbnailImage: propertyData.thumbnailImage,
+      thumbnailImageType: typeof propertyData.thumbnailImage,
+      thumbnailImageLength: propertyData.thumbnailImage?.length,
+      hasThumbnailImage: !!propertyData.thumbnailImage,
+      thumbnailImageEmpty: propertyData.thumbnailImage === '',
+      thumbnailImageNull: propertyData.thumbnailImage === null,
+      thumbnailImageUndefined: propertyData.thumbnailImage === undefined
+    });
     
     // Create and save property
     const property = new Property(propertyData);

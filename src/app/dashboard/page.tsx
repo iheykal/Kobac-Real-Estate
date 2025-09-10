@@ -18,6 +18,7 @@ interface Property {
   bedrooms: number
   bathrooms: number
   area: number
+  thumbnailImage?: string
   images: string[]
   status: string
   views: number
@@ -381,9 +382,9 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {properties.slice(0, 6).map(property => (
                 <div key={property._id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-                  {!!(property.images?.length) && (
+                  {!!(property.thumbnailImage || property.images?.length) && (
                     <div className="relative h-48">
-                      <NextImage src={property.images[0]} alt={property.title} fill className="object-cover" />
+                      <NextImage src={property.thumbnailImage || property.images[0]} alt={property.title} fill className="object-cover" />
                       <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700">
                         {property.status}
                       </div>

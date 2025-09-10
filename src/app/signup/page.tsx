@@ -39,14 +39,11 @@ export default function SignupPage() {
       return
     }
     
-    if (/^\d+$/.test(formData.password)) {
-      alert('Password cannot be numbers only')
-      return
-    }
+    // Allow numbers only, text only, or mixed passwords
     
     // Validate phone number format (should have 9 digits)
     if (!/^\d{9}$/.test(formData.phone)) {
-      alert('Please enter a valid phone number (9 digits)')
+      alert('Please enter a valid phone number (9 digits, e.g., 61xxxxxxx)')
       return
     }
     
@@ -141,7 +138,7 @@ export default function SignupPage() {
                 <Input
                   type="tel"
                   inputMode="numeric"
-                  placeholder="Enter your phone number"
+                  placeholder="Enter phone number (9 digits)"
                   value={formData.phone}
                   onChange={(e) => {
                     const numbersOnly = e.target.value.replace(/\D/g, '')

@@ -8,11 +8,11 @@
 /**
  * Resolves an image URL to ensure it points to Cloudflare R2
  * @param imageUrl - The image URL (could be local or R2)
- * @returns The resolved R2 URL
+ * @returns The resolved R2 URL or null if no valid image
  */
-export function resolveImageUrl(imageUrl: string | undefined | null): string {
-  if (!imageUrl) {
-    return '/icons/bg-1.webp'; // Default fallback image
+export function resolveImageUrl(imageUrl: string | undefined | null): string | null {
+  if (!imageUrl || imageUrl.trim() === '') {
+    return null; // No fallback - let components handle missing images
   }
 
   // If it's already an R2 URL, return as is
@@ -38,34 +38,33 @@ export function resolveImageUrl(imageUrl: string | undefined | null): string {
     return imageUrl;
   }
 
-  // Default fallback
-  return '/icons/bg-1.webp';
+  // No valid image found
+  return null;
 }
 
 /**
  * Resolves multiple image URLs
  * @param imageUrls - Array of image URLs
- * @returns Array of resolved R2 URLs
+ * @returns Array of resolved R2 URLs (filtered to remove nulls)
  */
 export function resolveImageUrls(imageUrls: (string | undefined | null)[]): string[] {
-  return imageUrls.map(resolveImageUrl);
+  return imageUrls.map(resolveImageUrl).filter((url): url is string => url !== null);
 }
 
 /**
  * Gets the primary image URL for a property
  * @param property - Property object with image fields
- * @returns The primary image URL
+ * @returns The primary image URL or null if no valid image
  */
 export function getPrimaryImageUrl(property: {
   thumbnailImage?: string;
   images?: string[];
   image?: string;
-}): string {
+}): string | null {
   return resolveImageUrl(
     property.thumbnailImage || 
     property.images?.[0] || 
-    property.image || 
-    '/icons/bg-1.webp'
+    property.image
   );
 }
 
@@ -81,20 +80,58 @@ export function getAllImageUrls(property: {
 }): string[] {
   const urls: string[] = [];
   
+  // Add thumbnail image if it exists
   if (property.thumbnailImage) {
-    urls.push(resolveImageUrl(property.thumbnailImage));
+    const resolvedThumbnail = resolveImageUrl(property.thumbnailImage);
+    if (resolvedThumbnail) {
+      urls.push(resolvedThumbnail);
+    }
   }
   
+  // Add additional images from the images array, but exclude any that match the thumbnail
   if (property.images && Array.isArray(property.images)) {
-    urls.push(...resolveImageUrls(property.images));
+    const resolvedImages = resolveImageUrls(property.images);
+    
+    // Filter out any images that are the same as the thumbnail to prevent duplication
+    const resolvedThumbnail = property.thumbnailImage ? resolveImageUrl(property.thumbnailImage) : null;
+    const uniqueImages = resolvedImages.filter(img => {
+      // If no thumbnail, include all images
+      if (!resolvedThumbnail) {
+        return true;
+      }
+      // Exclude images that match the thumbnail URL
+      const isDuplicate = img === resolvedThumbnail;
+      if (isDuplicate) {
+        console.log('🖼️ Filtering out duplicate thumbnail from additional images:', img);
+      }
+      return !isDuplicate;
+    });
+    urls.push(...uniqueImages);
   }
   
+  // Fallback: if no thumbnail or images array, use the single image field
   if (property.image && !property.thumbnailImage && !property.images?.length) {
-    urls.push(resolveImageUrl(property.image));
+    const resolvedImage = resolveImageUrl(property.image);
+    if (resolvedImage) {
+      urls.push(resolvedImage);
+    }
   }
   
-  // Remove duplicates and return
-  return Array.from(new Set(urls));
+  // Remove any remaining duplicates and filter out null/undefined values
+  const finalUrls = Array.from(new Set(urls.filter(url => url !== null && url !== undefined)));
+  
+  // Additional check: if we only have one unique image, make sure we don't return duplicates
+  if (finalUrls.length === 1) {
+    return finalUrls;
+  }
+  
+  // If we have multiple URLs but they're all the same, return only one
+  const uniqueUrls = [...new Set(finalUrls)];
+  if (uniqueUrls.length === 1 && finalUrls.length > 1) {
+    return [uniqueUrls[0]];
+  }
+  
+  return finalUrls;
 }
 
 /**

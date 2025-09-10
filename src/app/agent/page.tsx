@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUser } from '@/contexts/UserContext'
-import { uploadToR2, uploadMultipleToR2 } from '@/lib/r2-upload'
+import { uploadToR2, uploadMultipleToR2, uploadPropertyImagesToR2 } from '@/lib/r2-upload'
 import { formatPrice, handlePriceInputChange, parsePriceFromInput } from '@/lib/utils'
 import { propertyEventManager } from '@/lib/propertyEvents'
 import { 
@@ -24,6 +24,7 @@ import {
   Star,
   X
 } from 'lucide-react'
+import { PropertyImageWithWatermarkFixed } from '@/components/ui/PropertyImageWithWatermarkFixed'
 
 interface Property {
   id: string
@@ -38,6 +39,7 @@ interface Property {
   district: string
   bedrooms: string
   bathrooms: string
+  thumbnailImage?: string
   images: string[]
   createdAt: string
   viewCount?: number
@@ -139,24 +141,98 @@ export default function AgentDashboard() {
       avatar: contextUser.avatar
     })
     
-    console.log('🔍 Agent Dashboard: Fetching properties for user:', contextUser.id)
+    console.log('🔍 Agent Dashboard: Fetching data for user:', contextUser.id)
     
-    // Fetch properties for the user
-    fetchAgentProperties(contextUser.id)
-    // Fetch agent's total views
-    fetchAgentTotalViews(contextUser.id)
+    // Optimized: Fetch all data in parallel with mobile-specific optimizations
+    fetchAgentDataOptimized(contextUser.id)
     
     // Set a fallback timeout to ensure loading doesn't hang forever
     const fallbackTimeout = setTimeout(() => {
       console.log('🔍 Agent Dashboard: Fallback timeout triggered - setting loading to false')
       setLoading(false)
-    }, 15000) // 15 second fallback
+    }, 8000) // Reduced to 8s for better mobile UX
     
     // Clear timeout when component unmounts or when loading is set to false
     return () => clearTimeout(fallbackTimeout)
   }, [contextUser, isAuthenticated, contextLoading]) // Depend on UserContext state
 
-  // Removed checkAuth function - now using UserContext for authentication
+  // Optimized data fetching for mobile performance
+  const fetchAgentDataOptimized = async (agentId: string) => {
+    try {
+      console.log('🚀 Agent Dashboard: Starting optimized data fetch for agentId:', agentId)
+      setLoading(true)
+      setError(null)
+      
+      // Detect mobile device for optimizations
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+      const limit = isMobile ? 6 : 12 // Load fewer properties on mobile
+      
+      console.log('📱 Mobile detection:', { isMobile, limit, windowWidth: typeof window !== 'undefined' ? window.innerWidth : 'undefined' })
+      
+      // Fetch properties and views in parallel with mobile optimizations
+      const [propertiesResponse, viewsResponse] = await Promise.allSettled([
+        fetch(`/api/properties?agentId=${agentId}&limit=${limit}`, {
+          credentials: 'include',
+          headers: {
+            'x-agent-dashboard': 'true',
+            'x-mobile-optimized': isMobile ? 'true' : 'false'
+          },
+          cache: 'force-cache', // Cache for better performance
+          next: { revalidate: 60 } // Revalidate every minute
+        }),
+        fetch(`/api/agent/total-views?agentId=${agentId}`, {
+          credentials: 'include',
+          cache: 'force-cache',
+          next: { revalidate: 300 } // Cache views for 5 minutes
+        })
+      ])
+      
+      // Process properties response
+      if (propertiesResponse.status === 'fulfilled' && propertiesResponse.value.ok) {
+        const result = await propertiesResponse.value.json()
+        const mappedProperties = (result.data || [])
+          .filter((property: any) => {
+            const isVisible = property.deletionStatus !== 'pending_deletion' && 
+                             property.deletionStatus !== 'deleted'
+            return isVisible
+          })
+          .map((property: any) => ({
+            ...property,
+            id: property._id || property.propertyId || property.id,
+            bedrooms: property.beds?.toString() || '0',
+            bathrooms: property.baths?.toString() || '0',
+            area: property.sqft?.toString() || '0'
+          }))
+        
+        setProperties(mappedProperties)
+        console.log('✅ Properties loaded:', mappedProperties.length)
+      } else {
+        console.error('❌ Properties fetch failed:', propertiesResponse.status)
+        setProperties([])
+      }
+      
+      // Process views response
+      if (viewsResponse.status === 'fulfilled' && viewsResponse.value.ok) {
+        const result = await viewsResponse.value.json()
+        if (result.success) {
+          setTotalViews(result.data.totalViews || 0)
+          console.log('✅ Views loaded:', result.data.totalViews)
+        }
+      } else {
+        console.error('❌ Views fetch failed:', viewsResponse.status)
+        // Fallback to calculating from properties
+        setTotalViews(properties.reduce((total, property) => total + (property.viewCount || 0), 0))
+      }
+      
+    } catch (error) {
+      console.error('❌ Optimized data fetch error:', error)
+      setError('Failed to load dashboard data. Please try again.')
+      setProperties([])
+    } finally {
+      setLoading(false)
+      console.log('🏁 Agent Dashboard: Data loading complete')
+    }
+  }
 
   const fetchAgentProperties = async (agentId: string) => {
     try {
@@ -270,12 +346,12 @@ export default function AgentDashboard() {
         return
       }
       
-      // Validate price
-      const parsedPrice = parsePriceFromInput(propertyData.price)
-      if (!parsedPrice || parsedPrice <= 0) {
-        alert('Please enter a valid price')
-        return
+      // Check for duplicate images
+      if (propertyData.thumbnailImage && propertyData.additionalImages.some(file => file.name === propertyData.thumbnailImage?.name)) {
+        const duplicateCount = propertyData.additionalImages.filter(file => file.name === propertyData.thumbnailImage?.name).length
+        alert(`Warning: You've selected the same image "${propertyData.thumbnailImage.name}" for both thumbnail and additional images (${duplicateCount} times). Duplicates will be automatically removed, but you should select different images for better property presentation.`)
       }
+      
       
       // Check authentication before proceeding
       if (!isAuthenticated) {
@@ -294,86 +370,58 @@ export default function AgentDashboard() {
         alert('Please enter the measurement (Cabirka) for sale properties')
         return
       }
+      
+      // Validate price
+      if (!propertyData.price || propertyData.price.trim() === '') {
+        alert('Please enter a valid price for the property')
+        return
+      }
 
     try {
       setUploadingImages(true)
       
-      // Upload images to R2 first
-      let imageUrls: string[] = []
-      
-      // Combine thumbnail and additional images
-      const allImages: File[] = []
-      if (propertyData.thumbnailImage) {
-        allImages.push(propertyData.thumbnailImage)
+      // First, create the property without images to get the property ID
+      // Parse and validate the price
+      let parsedPrice = 0;
+      if (propertyData.price) {
+        const cleanPrice = propertyData.price.replace(/[^\d.]/g, ''); // Remove non-numeric characters
+        parsedPrice = parseFloat(cleanPrice) || 0;
       }
-      allImages.push(...propertyData.additionalImages)
       
-      if (allImages.length > 0) {
-        try {
-          const uploadResults = await uploadMultipleToR2(allImages)
-          imageUrls = uploadResults.map(result => result.url)
-        } catch (error) {
-          // Use fallback images if upload fails
-          imageUrls = ['https://picsum.photos/400/300?random=1']
-          // Don't return here, continue with fallback images
-        }
-      } else {
-        // Use placeholder image if no images uploaded
-        imageUrls = ['https://picsum.photos/400/300?random=1']
+      console.log('💰 Price parsing:', {
+        original: propertyData.price,
+        cleaned: propertyData.price?.replace(/[^\d.]/g, ''),
+        parsed: parsedPrice
+      });
+      
+      // Validate parsed price
+      if (parsedPrice <= 0) {
+        alert('Please enter a valid price greater than 0')
+        return
       }
-
-
-
-      // Prepare the property data in the format expected by the API
+      
       const propertyPayload = {
-        title: propertyData.title || propertyData.propertyType, // Use title if available, fallback to propertyType
+        title: propertyData.title || propertyData.propertyType,
         propertyType: propertyData.propertyType,
         listingType: propertyData.listingType,
-        status: propertyData.listingType === 'sale' ? 'For Sale' : 'For Rent', // Auto-set status based on listing type
+        status: propertyData.listingType === 'sale' ? 'For Sale' : 'For Rent',
         measurement: propertyData.measurement,
         description: propertyData.description,
-        price: parsePriceFromInput(propertyData.price), // Parse formatted price to number
+        price: parsedPrice, // Use parsed number instead of string
         location: propertyData.location,
         district: propertyData.district,
         bedrooms: propertyData.bedrooms,
         bathrooms: propertyData.bathrooms,
-        thumbnailImage: imageUrls[0] || 'https://picsum.photos/400/300?random=1',
-        additionalImages: imageUrls.slice(1) || [],
+        thumbnailImage: '', // Will be set after image upload
+        additionalImages: [], // Will be updated after image upload
         agentName: user.fullName || 'Agent',
         agentPhone: user.phone || ''
       }
       
-      console.log('🔍 Property payload being sent to API:', {
-        payload: propertyPayload,
-        validation: {
-          hasTitle: !!propertyPayload.title,
-          hasPropertyType: !!propertyPayload.propertyType,
-          hasDescription: !!propertyPayload.description,
-          hasPrice: !!propertyPayload.price,
-          hasLocation: !!propertyPayload.location,
-          hasDistrict: !!propertyPayload.district,
-          hasBedrooms: !!propertyPayload.bedrooms,
-          hasBathrooms: !!propertyPayload.bathrooms,
-          hasStatus: !!propertyPayload.status
-        }
-      })
-
-      console.log('🔍 Agent dashboard payload debug:', {
-        listingType: propertyData.listingType,
-        status: propertyPayload.status,
-        statusType: typeof propertyPayload.status,
-        fullPayload: propertyPayload,
-        user: {
-          id: user.id,
-          fullName: user.fullName,
-          phone: user.phone
-        }
-      });
-
-      // Add a small delay to ensure session is ready
-      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('🔍 Creating property first to get ID...')
+      console.log('🔍 Property payload being sent:', propertyPayload)
       
-      const response = await fetch('/api/properties', {
+      const createResponse = await fetch('/api/properties', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -382,118 +430,248 @@ export default function AgentDashboard() {
         body: JSON.stringify(propertyPayload)
       })
       
-      // Debug session issue
-      if (response.status === 401) {
-        console.error('🔍 401 Unauthorized - Session issue detected');
-        console.error('🔍 Response headers:', Object.fromEntries(response.headers.entries()));
-        console.error('🔍 Current user:', user);
-        console.error('🔍 Is authenticated:', isAuthenticated);
-        
-        // Try to refresh the session
-        console.log('🔄 Attempting to refresh session...');
-        const sessionValid = await validateSession();
-        if (sessionValid) {
-          console.log('✅ Session refresh successful');
-          // Retry the property upload
-          const retryResponse = await fetch('/api/properties', {
-            method: 'POST',
+      const createResult = await createResponse.json()
+      console.log('🔍 Property creation response:', {
+        status: createResponse.status,
+        ok: createResponse.ok,
+        result: createResult
+      })
+      
+      if (!createResponse.ok) {
+        throw new Error(createResult.error || 'Failed to create property')
+      }
+      
+      const propertyId = createResult.data?.id || createResult.data?._id
+      console.log('✅ Property created with ID:', propertyId)
+      console.log('✅ Property creation result data:', {
+        data: createResult.data,
+        dataId: createResult.data?.id,
+        data_id: createResult.data?._id,
+        finalPropertyId: propertyId
+      })
+      
+      // Optimistically add the new property to the list so it shows immediately
+      try {
+        const tempProperty: Property = {
+          id: propertyId,
+          title: propertyPayload.title,
+          propertyType: propertyPayload.propertyType,
+          listingType: propertyPayload.listingType,
+          measurement: propertyPayload.measurement || '',
+          status: propertyPayload.status,
+          description: propertyPayload.description,
+          price: String(propertyPayload.price),
+          location: propertyPayload.location || '',
+          district: propertyPayload.district || '',
+          bedrooms: propertyPayload.bedrooms || '0',
+          bathrooms: propertyPayload.bathrooms || '0',
+          thumbnailImage: '',
+          images: [],
+          createdAt: new Date().toISOString(),
+          viewCount: 0,
+          deletionStatus: 'active'
+        }
+        setProperties(prev => [tempProperty, ...prev])
+      } catch (e) {
+        console.warn('⚠️ Failed to optimistically add property, continuing...', e)
+      }
+      
+      // Now upload images to R2 with the property ID
+      let imageUrls: string[] = []
+      
+      // Combine thumbnail and additional images, avoiding duplicates
+      const allImages: File[] = []
+      const addedFiles = new Set<string>() // Track file names to avoid duplicates
+      
+      if (propertyData.thumbnailImage) {
+        allImages.push(propertyData.thumbnailImage)
+        addedFiles.add(propertyData.thumbnailImage.name)
+      }
+      
+      // Add additional images, skipping any that are the same as the thumbnail
+      propertyData.additionalImages.forEach(file => {
+        if (!addedFiles.has(file.name)) {
+          allImages.push(file)
+          addedFiles.add(file.name)
+        } else {
+          console.log('🔄 Skipping duplicate file:', file.name)
+        }
+      })
+      
+      console.log('📸 Image upload summary:', {
+        thumbnailImage: propertyData.thumbnailImage?.name,
+        additionalImages: propertyData.additionalImages.map(f => f.name),
+        totalFilesToUpload: allImages.length,
+        filesToUpload: allImages.map(f => f.name),
+        thumbnailFile: propertyData.thumbnailImage,
+        additionalFiles: propertyData.additionalImages,
+        allImagesFiles: allImages,
+        duplicatesRemoved: (propertyData.thumbnailImage ? 1 : 0) + propertyData.additionalImages.length - allImages.length
+      })
+      
+      // Show user what will be uploaded
+      if (allImages.length > 0) {
+        const duplicatesRemoved = (propertyData.thumbnailImage ? 1 : 0) + propertyData.additionalImages.length - allImages.length
+        if (duplicatesRemoved > 0) {
+          console.log(`📸 Upload summary: ${allImages.length} unique images will be uploaded (${duplicatesRemoved} duplicates removed)`)
+        } else {
+          console.log(`📸 Upload summary: ${allImages.length} images will be uploaded`)
+        }
+      }
+      
+      if (allImages.length > 0) {
+        try {
+          console.log('📸 Uploading images to R2 with property ID:', propertyId)
+          console.log('📸 Files to upload:', allImages.map(f => ({ name: f.name, size: f.size, type: f.type })))
+          const uploadResults = await uploadPropertyImagesToR2(allImages, propertyId)
+          console.log('📸 Upload results:', uploadResults)
+          imageUrls = uploadResults.map(result => result.url)
+          console.log('✅ Images uploaded to R2:', imageUrls)
+          console.log('✅ Image URLs extracted:', imageUrls)
+          console.log('🔍 Upload results details:', {
+            uploadResultsCount: uploadResults.length,
+            uploadResults: uploadResults,
+            imageUrlsCount: imageUrls.length,
+            imageUrls: imageUrls,
+            originalFilesCount: allImages.length,
+            originalFiles: allImages.map(f => f.name),
+            uploadedFilesCount: uploadResults.length,
+            uploadedFiles: uploadResults.map(r => r.key)
+          })
+        } catch (error) {
+          console.error('❌ Image upload failed:', error)
+          console.error('❌ Image upload error details:', error instanceof Error ? error.message : error)
+          // Don't use placeholder images - let the property be created without images
+          // The user can upload images later
+          imageUrls = []
+        }
+      } else {
+        // No images uploaded - property will be created without images
+        console.log('📸 No images to upload')
+        imageUrls = []
+      }
+
+      // Update the property with the uploaded images
+      console.log('🔄 Image URLs check:', { imageUrlsLength: imageUrls.length, imageUrls: imageUrls })
+      if (imageUrls.length > 0) {
+        try {
+          console.log('🔄 Updating property with uploaded images...')
+          // Debug: Check what we actually have in imageUrls
+          console.log('🔍 imageUrls array analysis:', {
+            totalUrls: imageUrls.length,
+            urls: imageUrls,
+            firstUrl: imageUrls[0],
+            remainingUrls: imageUrls.slice(1),
+            remainingCount: imageUrls.slice(1).length
+          })
+          
+          const updatePayload = {
+            thumbnailImage: imageUrls[0],
+            images: imageUrls.slice(1) // Store only the additional images (excluding the thumbnail)
+          }
+          
+          console.log('🔄 Update payload:', updatePayload)
+          console.log('🔄 Image URLs being saved:', {
+            thumbnailImage: updatePayload.thumbnailImage,
+            additionalImagesCount: updatePayload.images.length,
+            additionalImages: updatePayload.images,
+            totalImagesUploaded: imageUrls.length,
+            originalImageUrls: imageUrls,
+            thumbnailIndex: 0,
+            additionalImagesStartIndex: 1
+          })
+          console.log('🔄 Property ID for update:', propertyId)
+          
+          const updateResponse = await fetch(`/api/properties/${propertyId}`, {
+            method: 'PATCH',
             headers: {
               'Content-Type': 'application/json'
             },
             credentials: 'include',
-            body: JSON.stringify(propertyPayload)
-          });
+            body: JSON.stringify(updatePayload)
+          })
           
-          if (retryResponse.ok) {
-            const retryResult = await retryResponse.json();
-            console.log('✅ Property upload successful after session refresh');
-            alert('Property uploaded successfully!')
-            setShowUploadModal(false)
-            setPropertyData({
-              title: '',
-              propertyType: 'villa',
-              listingType: 'sale',
-              measurement: '',
-              description: '',
-              price: '',
-              location: '',
-              district: '',
-              bedrooms: '',
-              bathrooms: '',
-              thumbnailImage: null,
-              additionalImages: []
-            })
+          const updateResult = await updateResponse.json()
+          console.log('🔄 Property update response:', {
+            status: updateResponse.status,
+            ok: updateResponse.ok,
+            result: updateResult
+          })
+          
+          if (updateResponse.ok) {
+            console.log('✅ Property updated with images successfully')
+            console.log('✅ Updated property data:', updateResult.data)
             
-            // Force refresh properties immediately
-            console.log('🔄 Refreshing agent properties after successful upload...')
-            await fetchAgentProperties(user.id)
-            
-            // Re-fetch total views after successful upload
-            fetchAgentTotalViews(user.id)
-            
-            // Notify other components about the new property
-            if (retryResult.data && retryResult.data._id) {
-              console.log('🔔 Notifying other components about new property:', retryResult.data._id)
-              propertyEventManager.notifyAdded(retryResult.data._id)
+            // Notify other components about the property update
+            if (propertyId) {
+              console.log('🔔 Notifying other components about property update:', propertyId)
+              propertyEventManager.notifyUpdated(propertyId)
             }
-            return;
+            // Update the property in local state to reflect images immediately
+            try {
+              setProperties(prev => prev.map(p => {
+                if (p.id === propertyId) {
+                  return {
+                    ...p,
+                    thumbnailImage: updatePayload.thumbnailImage,
+                    images: updatePayload.images || [] // Additional images only (no duplication with thumbnail)
+                  }
+                }
+                return p
+              }))
+            } catch (e) {
+              console.warn('⚠️ Failed to update property in local state, continuing...', e)
+            }
           } else {
-            console.error('❌ Property upload still failed after session refresh');
-            const retryResult = await retryResponse.json();
-            alert(`Failed to upload property after session refresh: ${retryResult.error || 'Unknown error'}`)
-            return;
+            console.error('❌ Failed to update property with images:', updateResult.error)
+            console.error('❌ PATCH request failed details:', {
+              status: updateResponse.status,
+              statusText: updateResponse.statusText,
+              ok: updateResponse.ok,
+              result: updateResult
+            })
           }
-        } else {
-          console.error('❌ Session refresh failed');
-          alert('Session expired. Please log in again.')
-          logout();
-          return;
-        }
-      }
-      
-      const result = await response.json()
-      console.log('🔍 Property creation response:', {
-        status: response.status,
-        ok: response.ok,
-        result: result
-      })
-      
-      if (response.ok) {
-        alert('Property uploaded successfully!')
-        setShowUploadModal(false)
-        setPropertyData({
-          title: '',
-          propertyType: 'villa',
-          listingType: 'sale',
-          measurement: '',
-          description: '',
-          price: '',
-          location: '',
-          district: '',
-          bedrooms: '',
-          bathrooms: '',
-          thumbnailImage: null,
-          additionalImages: []
-        })
-        
-        // Force refresh properties immediately
-        console.log('🔄 Refreshing agent properties after successful upload...')
-        await fetchAgentProperties(user.id)
-        
-        // Re-fetch total views after successful upload
-        fetchAgentTotalViews(user.id)
-        
-        // Notify other components about the new property
-        if (result.data && result.data._id) {
-          console.log('🔔 Notifying other components about new property:', result.data._id)
-          propertyEventManager.notifyAdded(result.data._id)
+        } catch (error) {
+          console.error('❌ Error updating property with images:', error)
         }
       } else {
-        console.error('❌ Property creation failed:', result)
-        alert(`Failed to upload property: ${result.error || 'Unknown error'}`)
+        console.log('⚠️ No image URLs to save to property - property will have empty images')
       }
+      
+      console.log('✅ Property creation and image upload completed successfully')
+      
+      // Show success message and refresh properties
+      alert('Property uploaded successfully!')
+      setShowUploadModal(false)
+      setPropertyData({
+        title: '',
+        propertyType: 'villa',
+        listingType: 'sale',
+        measurement: '',
+        description: '',
+        price: '',
+        location: '',
+        district: '',
+        bedrooms: '',
+        bathrooms: '',
+        thumbnailImage: null,
+        additionalImages: []
+      })
+      
+      // Force refresh properties immediately
+      console.log('🔄 Refreshing agent properties after successful upload...')
+      await fetchAgentProperties(user.id)
+      
+      // Re-fetch total views after successful upload
+      fetchAgentTotalViews(user.id)
+      
+      // Force refresh the main page properties as well
+      console.log('🔄 Triggering main page property refresh...')
+      propertyEventManager.notifyRefresh()
     } catch (error) {
-      alert('Error uploading property')
+      console.error('❌ Property upload error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      alert(`Error uploading property: ${errorMessage}`)
     } finally {
       setUploadingImages(false)
     }
@@ -583,11 +761,45 @@ export default function AgentDashboard() {
   // Don't render anything until authentication check is complete
   if (loading || contextLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Checking authentication...</p>
-          <p className="text-sm text-gray-500 mt-2">Please wait while we verify your credentials</p>
+      <div className="min-h-screen bg-gray-50">
+        {/* Mobile-optimized loading skeleton */}
+        <div className="p-4 space-y-4">
+          {/* Header skeleton */}
+          <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse"></div>
+              <div className="space-y-2 flex-1">
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Stats skeleton */}
+          <div className="grid grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-lg p-4 shadow-sm">
+                <div className="h-6 bg-gray-200 rounded animate-pulse mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-2/3"></div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Properties skeleton */}
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-lg p-4 shadow-sm">
+                <div className="flex space-x-3">
+                  <div className="w-20 h-20 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                    <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -595,18 +807,18 @@ export default function AgentDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="max-w-md mx-auto px-4">
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-xl text-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md mx-auto w-full">
+          <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
               <User className="w-8 h-8 text-red-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-            <p className="text-gray-600 mb-6">{error}</p>
+            <h1 className="text-xl font-bold text-gray-900 mb-4">Dashboard Error</h1>
+            <p className="text-gray-600 mb-6 text-sm">{error}</p>
             <div className="space-y-3">
               <a
                 href="/"
-                className="block w-full px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                className="block w-full px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm"
               >
                 Go to Homepage & Login
               </a>
@@ -614,7 +826,7 @@ export default function AgentDashboard() {
                 onClick={() => {
                   window.location.reload()
                 }}
-                className="block w-full px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors"
+                className="block w-full px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors text-sm"
               >
                 Try Again
               </button>
@@ -678,7 +890,16 @@ export default function AgentDashboard() {
 
   // Final check - only render dashboard if we have a user and are not loading
   if (!user || loading) {
-    return null
+    console.log('🔍 Agent Dashboard: Final check failed', { user: !!user, loading, contextLoading })
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center p-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+          <p className="text-sm text-gray-500 mt-2">User: {user ? 'Yes' : 'No'}, Loading: {loading ? 'Yes' : 'No'}</p>
+        </div>
+      </div>
+    )
   }
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100">
@@ -977,21 +1198,12 @@ export default function AgentDashboard() {
                   >
                     {/* Property Image */}
                     <div className="relative h-56 overflow-hidden">
-                      {property.images && property.images.length > 0 && property.images[0] ? (
-                        <img
-                          src={property.images[0]}
-                          alt={property.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = 'https://picsum.photos/400/300?random=1';
-                          }}
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                          <Home className="w-16 h-16 text-gray-400" />
-                        </div>
-                      )}
+                      <PropertyImageWithWatermarkFixed
+                        alt={property.title}
+                        className="w-full h-full"
+                        showWatermark={false}
+                        property={property as any}
+                      />
                       
                       {/* Price Badge */}
                       <div className="absolute top-4 right-4">
@@ -1367,13 +1579,24 @@ export default function AgentDashboard() {
                           ✅ Selected {propertyData.additionalImages.length} additional image(s):
                         </p>
                         <ul className="text-sm text-emerald-600 space-y-1">
-                          {propertyData.additionalImages.map((file, index) => (
-                            <li key={index} className="flex items-center space-x-2">
-                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                          {propertyData.additionalImages.map((file, index) => {
+                            const isDuplicate = propertyData.thumbnailImage && file.name === propertyData.thumbnailImage.name
+                            return (
+                              <li key={index} className={`flex items-center space-x-2 ${isDuplicate ? 'text-red-600' : ''}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${isDuplicate ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
                               <span>{file.name}</span>
+                                {isDuplicate && <span className="text-red-600 text-xs">(Same as thumbnail - will be skipped)</span>}
                             </li>
-                          ))}
+                            )
+                          })}
                         </ul>
+                        {propertyData.thumbnailImage && propertyData.additionalImages.some(file => file.name === propertyData.thumbnailImage?.name) && (
+                          <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-sm text-yellow-700">
+                              ⚠️ <strong>Warning:</strong> You've selected the same image for both thumbnail and additional images. Duplicates will be automatically removed.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

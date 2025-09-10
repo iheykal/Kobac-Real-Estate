@@ -180,11 +180,11 @@ export const PropertyRecommendations: React.FC<PropertyRecommendationsProps> = (
                 onClick={() => onPropertyClick(property)}
               >
                 {/* Image Section */}
-                <div className="relative h-60 md:h-80 overflow-hidden">
+                <div className="relative h-60 md:h-80 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
                   <PropertyImageWithWatermark
                     src={getPropertyImage(property)}
                     alt={property.title}
-                    className="w-full h-full group-hover:scale-110 transition-transform duration-700"
+                    className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
                     showWatermark={true}
                     watermarkPosition="center"
                     watermarkSize="medium"

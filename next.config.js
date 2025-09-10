@@ -5,6 +5,11 @@ const nextConfig = {
     serverComponentsExternalPackages: ['mongoose', 'argon2', 'bcryptjs', '@aws-sdk/client-s3', '@aws-sdk/s3-request-presigner', 'formidable', 'sharp'],
   },
   
+  // Environment variables for deployment
+  env: {
+    VERCEL: process.env.VERCEL,
+  },
+  
   // Image configuration for Cloudflare R2
   images: {
     remotePatterns: [
@@ -29,6 +34,12 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'pub-744f24f8a5918e0d996c5ff4009a7adb.r2.dev',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'kobac-real-estate.r2.dev',
         port: '',
         pathname: '/**',
       },

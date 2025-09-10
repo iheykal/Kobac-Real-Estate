@@ -32,14 +32,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp, onClose 
     
     // Basic validation - let the backend handle detailed validation
     if (!formData.password || formData.password.length < 1) {
-      alert('Password is required')
+      alert('Password is required (numbers only)')
       return
     }
     
-    // More flexible phone number validation
+    // Phone number validation (9 digits only)
     const phoneDigits = formData.phone.replace(/\D/g, '');
-    if (phoneDigits.length < 9 || phoneDigits.length > 12) {
-      alert('Please enter a valid phone number (9-12 digits)')
+    if (phoneDigits.length !== 9) {
+      alert('Please enter a valid phone number (9 digits, e.g., 61xxxxxxx)')
       return
     }
     
@@ -218,7 +218,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp, onClose 
             <Input
               type="tel"
                   inputMode="numeric"
-                  placeholder="123456789 or +252123456789"
+                  placeholder="Enter phone number (9 digits)"
               value={formData.phone}
                   onChange={(e) => {
                     // Allow flexible phone number input
@@ -242,11 +242,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignUp, onClose 
             >
             <Input
                 type={showPassword ? "text" : "password"}
-              placeholder="Password"
+              placeholder="Password (5+ chars, numbers or letters)"
               value={formData.password}
               onChange={(e) => {
                 handleInputChange('password', e.target.value)
               }}
+              inputMode="text"
               required
                 icon={<Lock className="w-5 h-5 text-purple-400 flex-shrink-0" />}
                 className="h-14 w-full max-w-[500px] mx-auto bg-slate-800/80 border-purple-500/30 text-white placeholder-purple-200/60 rounded-xl focus:border-purple-400 focus:ring-purple-400/20 transition-all duration-300 pl-14 pr-12"

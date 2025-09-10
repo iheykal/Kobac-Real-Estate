@@ -42,7 +42,7 @@ export const PropertyImageWithWatermark: React.FC<PropertyImageWithWatermarkProp
       <motion.img
         src={src}
         alt={alt}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover object-center"
         initial={{ opacity: 0, scale: 1.05 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.2 }}

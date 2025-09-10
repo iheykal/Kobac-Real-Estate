@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     // Validate phone number format
     if (!validatePhoneNumber(normalizedPhone)) {
       return NextResponse.json(
-        { success: false, error: 'Please enter a valid phone number (9 digits after +252)' },
+        { success: false, error: 'Please enter a valid phone number (9 digits, e.g., 61xxxxxxx)' },
         { status: 400 }
       );
     }
@@ -141,7 +141,8 @@ export async function POST(request: NextRequest) {
     });
 
     // Regenerate session to prevent session fixation
-    regenerateSession(res, String(user._id), user.role, process.env.NODE_ENV === 'production');
+    const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    regenerateSession(res, String(user._id), user.role, isProd);
     
     console.log('🍪 Session regenerated for user:', user.fullName);
 

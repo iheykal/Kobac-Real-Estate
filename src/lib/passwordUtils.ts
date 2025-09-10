@@ -42,10 +42,8 @@ export async function validatePassword(password: string, phone?: string, email?:
     return 'Password must contain at least one number or one alphabet.';
   }
 
-  // Reject numeric-only passwords (but allow if it has alphabets too)
-  if (/^\d+$/.test(password)) {
-    return 'Password cannot be numbers only.';
-  }
+  // Allow numbers only, text only, or mixed passwords
+  // No additional restrictions on password composition
 
   // Check against common passwords
   if (COMMON_PASSWORDS.includes(password.toLowerCase())) {
@@ -228,17 +226,21 @@ export function validatePhoneNumber(phone: string): boolean {
   // Remove all non-digit characters
   const digits = phone.replace(/\D/g, '');
   
-  // Check if it's a valid Somali phone number
-  // Somali numbers: +252 + 9 digits
-  if (phone.startsWith('+252') && digits.length === 12) {
-    return true;
-  }
+  console.log('🔍 Phone validation - Input:', phone, 'Digits:', digits, 'Length:', digits.length);
   
-  // Check if it's 9 digits (without country code)
+  // Check if it's 9 digits (without country code) or 12 digits (with +252)
   if (digits.length === 9) {
+    console.log('✅ Phone validation - Valid 9 digits');
     return true;
   }
   
+  // Check if it's 12 digits starting with 252 (normalized format)
+  if (digits.length === 12 && digits.startsWith('252')) {
+    console.log('✅ Phone validation - Valid 12 digits with country code');
+    return true;
+  }
+  
+  console.log('❌ Phone validation - Invalid format');
   return false;
 }
 

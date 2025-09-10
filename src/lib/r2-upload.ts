@@ -35,3 +35,32 @@ export async function uploadAgentAvatarToR2(file: File, agentId: string): Promis
 export async function uploadMultipleToR2(files: File[], listingId?: string): Promise<{ key: string; url: string }[]> {
   return Promise.all(files.map((f) => uploadToR2(f, listingId)));
 }
+
+export async function uploadPropertyImagesToR2(files: File[], listingId?: string): Promise<{ key: string; url: string }[]> {
+  console.log('📸 uploadPropertyImagesToR2 called with:', { filesCount: files.length, listingId });
+  
+  const formData = new FormData();
+  files.forEach(file => formData.append('files', file));
+  if (listingId) formData.append('listingId', listingId);
+
+  console.log('📸 Making request to /api/properties/upload-images');
+  const res = await fetch('/api/properties/upload-images', { method: 'POST', body: formData, credentials: 'include' });
+  
+  console.log('📸 Upload response status:', res.status, res.ok);
+  const responseData = await res.json();
+  console.log('📸 Upload response data:', responseData);
+  
+  const { success, files: uploadedFiles, error } = responseData;
+
+  if (error) {
+    console.error('📸 Upload error:', error);
+    throw new Error(error);
+  }
+  if (!success || !uploadedFiles?.length) {
+    console.error('📸 Upload failed - no files returned:', { success, uploadedFiles });
+    throw new Error('Property image upload failed');
+  }
+
+  console.log('📸 Upload successful, returning:', uploadedFiles);
+  return uploadedFiles;
+}

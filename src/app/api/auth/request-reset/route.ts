@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     // Validate phone number format
     if (!validatePhoneNumber(normalizedPhone)) {
       return NextResponse.json(
-        { success: false, error: 'Please enter a valid phone number (9 digits after +252)' },
+        { success: false, error: 'Please enter a valid phone number (9 digits, e.g., 61xxxxxxx)' },
         { status: 400 }
       );
     }

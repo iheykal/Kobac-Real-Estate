@@ -120,7 +120,7 @@ export default function CreateSuperAdminPage() {
                     value={formData.phone}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value.replace(/\D/g, '') }))}
                     className="flex-1 px-4 py-3 bg-white/20 border border-white/30 rounded-r-lg text-white placeholder-purple-200/60 focus:outline-none focus:ring-2 focus:ring-purple-400"
-                    placeholder="123456789"
+                    placeholder="Enter phone number"
                     maxLength={9}
                     required
                   />

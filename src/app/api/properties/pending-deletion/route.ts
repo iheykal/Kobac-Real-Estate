@@ -1,69 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
-import Property from '@/models/Property';
-import User from '@/models/User';
 import { getSessionFromRequest } from '@/lib/sessionUtils';
+import Property from '@/models/Property';
+import connectDB from '@/lib/mongodb';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔄 Fetching properties pending deletion...');
-    
-    await connectDB();
-    
-    // Get session for authorization
+    // Check authentication
     const session = getSessionFromRequest(request);
     if (!session) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
-    
-    // Get user info and check if superadmin
-    const user = await User.findById(session.userId).select('role');
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+
+    // Check authorization - only superadmin can access this
+    const normalizedRole = session.role === 'super_admin' ? 'superadmin' : session.role;
+
+    if (normalizedRole !== 'superadmin') {
+      return NextResponse.json({
+        success: false,
+        error: 'Forbidden: Only superadmin can access this endpoint'
+      }, { status: 403 });
     }
-    
-    const isSuperAdmin = user.role === 'superadmin' || user.role === 'super_admin';
-    if (!isSuperAdmin) {
-      return NextResponse.json({ success: false, error: 'Forbidden: Only superadmin can view pending deletions' }, { status: 403 });
-    }
-    
-    // Get properties pending deletion
-    const pendingDeletions = await Property.find({ 
-      deletionStatus: 'pending_deletion' 
-    })
-    .populate('agentId', 'fullName email phone')
-    .sort({ deletionRequestedAt: -1 })
-    .lean();
-    
-    console.log('✅ Found properties pending deletion:', pendingDeletions.length);
-    
+
+    // Connect to database
+    await connectDB();
+
+    // Find properties with pending deletion status
+    const pendingDeletions = await Property.find({
+      deletionStatus: 'pending_deletion'
+    }).populate('agentId', 'fullName email phone').select('_id propertyId title location district price listingType agentId agent deletionRequestedAt deletionRequestedBy createdAt');
+
     return NextResponse.json({
       success: true,
-      data: pendingDeletions.map(property => ({
-        _id: property._id,
-        propertyId: property.propertyId,
-        title: property.title,
-        description: property.description,
-        location: property.location,
-        price: property.price,
-        beds: property.beds,
-        baths: property.baths,
-        sqft: property.sqft,
-        propertyType: property.propertyType,
-        thumbnailImage: property.thumbnailImage,
-        images: property.images,
-        agent: property.agent,
-        agentId: property.agentId,
-        deletionRequestedAt: property.deletionRequestedAt,
-        deletionRequestedBy: property.deletionRequestedBy,
-        createdAt: property.createdAt
-      }))
+      data: pendingDeletions,
+      count: pendingDeletions.length
     });
-    
+
   } catch (error) {
-    console.error('💥 Error fetching pending deletions:', error);
+    console.error('Error fetching pending deletions:', error);
     return NextResponse.json(
-      { success: false, error: 'Server error' },
+      { success: false, error: 'Failed to fetch pending deletions' },
       { status: 500 }
     );
   }

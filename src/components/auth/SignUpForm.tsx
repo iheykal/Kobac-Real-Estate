@@ -66,14 +66,11 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSwitchToLogin, onClose
       return
     }
     
-    if (/^\d+$/.test(formData.password)) {
-      alert('Password cannot be numbers only')
-      return
-    }
+    // Allow numbers only, text only, or mixed passwords
     
     // Validate phone number format (should have 9 digits)
     if (!/^\d{9}$/.test(formData.phone)) {
-      alert('Please enter a valid phone number (9 digits)')
+      alert('Please enter a valid phone number (9 digits, e.g., 61xxxxxxx)')
       return
     }
     
@@ -295,7 +292,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSwitchToLogin, onClose
              <Input
                type="tel"
                   inputMode="numeric"
-                  placeholder=""
+                  placeholder="Enter phone number (9 digits)"
                value={formData.phone}
                   onChange={(e) => {
                     // Only allow numbers for the local part
@@ -324,6 +321,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSwitchToLogin, onClose
                 onChange={(e) => {
                   handleInputChange('password', e.target.value)
                 }}
+                inputMode="text"
                 required
                 icon={<Lock className="w-5 h-5 text-pink-400 flex-shrink-0" />}
                 className="h-14 w-full bg-slate-800/80 border-pink-500/30 text-white placeholder-pink-200/60 rounded-xl focus:border-pink-400 focus:ring-pink-400/20 transition-all duration-300 pl-14 pr-14"

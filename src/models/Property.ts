@@ -18,7 +18,7 @@ export interface IProperty extends Document {
   description: string;
   features: string[];
   amenities: string[];
-  thumbnailImage: string; // Main/featured image
+  thumbnailImage?: string; // Main/featured image (optional)
   images: string[]; // Additional property images
   agentId: string; // Add agentId field to link properties to agents
   agent: {
@@ -171,7 +171,8 @@ const PropertySchema: Schema = new Schema({
   }],
   thumbnailImage: {
     type: String,
-    required: true
+    required: false,
+    default: ''
   },
   images: [{
     type: String,
@@ -322,4 +323,9 @@ PropertySchema.index({
   name: 'property_text_search'
 });
 
-export default mongoose.models.Property || mongoose.model<IProperty>('Property', PropertySchema);
+// Force model refresh to ensure schema changes are applied
+if (mongoose.models.Property) {
+  delete mongoose.models.Property;
+}
+
+export default mongoose.model<IProperty>('Property', PropertySchema);

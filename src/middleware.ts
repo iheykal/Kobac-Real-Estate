@@ -55,16 +55,16 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    const role = session.role as 'user' | 'agent' | 'superadmin'
+    const role = session.role
     console.log('🔍 Middleware - User role:', role, 'Requested path:', pathname)
     
-    // Check if user can access the requested route
+    // Check if user can access the requested route (normalizeRole is called inside canAccessRoute)
     const canAccess = canAccessRoute(role, pathname)
     console.log('🔍 Middleware - Can access route:', canAccess)
     
     if (!canAccess) {
       // User doesn't have permission - redirect to their default route
-      const defaultRoute = getDefaultRoute(role)
+      const defaultRoute = getDefaultRoute(role as any)
       console.log('❌ Middleware - Access denied, redirecting to:', defaultRoute)
       const url = request.nextUrl.clone()
       url.pathname = defaultRoute

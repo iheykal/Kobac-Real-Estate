@@ -431,11 +431,11 @@ export default function AgentProfilePage() {
                         onClick={() => handlePropertyClick(property)}
                       >
                         {/* Image Section */}
-                        <div className="relative overflow-hidden h-60 md:h-80">
+                        <div className="relative overflow-hidden h-60 md:h-80 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
                           <PropertyImageWithWatermark
                             src={getPropertyImage(property)}
                             alt={property.title}
-                            className="w-full h-full group-hover:scale-110 transition-transform duration-700"
+                            className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
                             showWatermark={true}
                             watermarkPosition="center"
                             watermarkSize="medium"

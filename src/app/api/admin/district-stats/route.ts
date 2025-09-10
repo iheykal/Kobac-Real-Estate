@@ -1,42 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server'
-import connectDB from '@/lib/mongodb'
-import Property from '@/models/Property'
-import User from '@/models/User'
-import { getSessionFromRequest } from '@/lib/sessionUtils'
+import { NextRequest, NextResponse } from 'next/server';
+import { getSessionFromRequest } from '@/lib/sessionUtils';
+import Property from '@/models/Property';
+import connectToDatabase from '@/lib/mongodb';
 
 export async function GET(request: NextRequest) {
   try {
-    await connectDB()
-
-    // Get session for authorization
+    // Check authentication
     const session = getSessionFromRequest(request);
     if (!session) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await User.findById(session.userId)
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
-    }
-
-    // Check if user is superadmin (support both role formats)
-    const isSuperAdmin = user.role === 'superadmin' || user.role === 'super_admin' || user.role === 'SUPERADMIN' || user.role === 'SUPER_ADMIN'
+    // Check authorization - only superadmin can access this
+    const normalizedRole = session.role === 'super_admin' ? 'superadmin' : session.role;
     
-    if (!isSuperAdmin) {
-      console.log('Access denied. User role:', user.role, 'User:', user.fullName)
+    if (normalizedRole !== 'superadmin') {
       return NextResponse.json({ 
         success: false, 
-        error: 'Forbidden: Only superadmin can access this endpoint',
-        debug: { userRole: user.role, userName: user.fullName }
-      }, { status: 403 })
+        error: 'Forbidden: Only superadmin can access this endpoint' 
+      }, { status: 403 });
     }
+
+    // Connect to database
+    await connectToDatabase();
 
     // Aggregate properties by district
     const districtStats = await Property.aggregate([
       {
         $match: {
-          deletionStatus: { $ne: 'deleted' }, // Only count active properties
-          district: { $exists: true, $nin: [null, '', undefined] } // Filter out null/empty districts
+          deletionStatus: { $ne: 'deleted' } // Exclude deleted properties
         }
       },
       {
@@ -48,39 +40,38 @@ export async function GET(request: NextRequest) {
         }
       },
       {
-        $sort: { count: -1 } // Sort by count descending
+        $sort: { count: -1 }
       }
-    ])
+    ]);
 
-    // Format the data for the pie chart
+    // Transform data for the chart
     const chartData = districtStats.map(stat => ({
-      name: stat._id,
+      name: stat._id || 'Unknown',
       value: stat.count,
       totalValue: stat.totalValue,
-      avgPrice: Math.round(stat.avgPrice)
-    }))
+      avgPrice: Math.round(stat.avgPrice || 0)
+    }));
 
-    // Calculate totals
-    const totalProperties = chartData.reduce((sum, item) => sum + item.value, 0)
-    const totalValue = chartData.reduce((sum, item) => sum + item.totalValue, 0)
+    // Calculate summary
+    const summary = {
+      totalProperties: chartData.reduce((sum, item) => sum + item.value, 0),
+      totalValue: chartData.reduce((sum, item) => sum + item.totalValue, 0),
+      totalDistricts: chartData.length
+    };
 
     return NextResponse.json({
       success: true,
       data: {
         chartData,
-        summary: {
-          totalProperties,
-          totalValue,
-          totalDistricts: chartData.length
-        }
+        summary
       }
-    })
+    });
 
   } catch (error) {
-    console.error('Error fetching district stats:', error)
+    console.error('Error fetching district stats:', error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: 'Failed to fetch district statistics' },
       { status: 500 }
-    )
+    );
   }
 }

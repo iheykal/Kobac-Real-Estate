@@ -1,90 +1,96 @@
-import { NextRequest, NextResponse } from 'next/server'
-import connectDB from '@/lib/mongodb'
-import Property from '@/models/Property'
-import User from '@/models/User'
+import { NextRequest, NextResponse } from 'next/server';
+import { getSessionFromRequest } from '@/lib/sessionUtils';
+import Property from '@/models/Property';
+import connectToDatabase from '@/lib/mongodb';
 
 export async function POST(request: NextRequest) {
   try {
-    await connectDB()
-
     // Check authentication
-    const cookie = request.cookies.get('kobac_session')?.value
-    if (!cookie) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = getSessionFromRequest(request);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    let session: { userId: string; role: string } | null = null
-    try {
-      session = JSON.parse(decodeURIComponent(cookie))
-    } catch (_) {}
+    // Check authorization - only superadmin can access this
+    const normalizedRole = session.role === 'super_admin' ? 'superadmin' : session.role;
     
-    if (!session?.userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (normalizedRole !== 'superadmin') {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Forbidden: Only superadmin can access this endpoint' 
+      }, { status: 403 });
     }
 
-    // Check if user is superadmin
-    const user = await User.findById(session.userId)
-    if (!user || user.role !== 'superadmin') {
-      return NextResponse.json({ error: 'Forbidden: Only superadmin can access this' }, { status: 403 })
-    }
+    // Connect to database
+    await connectToDatabase();
 
-    console.log('🔧 Starting property status fix...')
-
-    // Find all properties that need fixing
+    // Find properties with missing or incorrect deletionStatus
     const propertiesToFix = await Property.find({
       $or: [
         { deletionStatus: { $exists: false } },
         { deletionStatus: null },
-        { deletionStatus: undefined },
-        { deletionStatus: '' }
+        { deletionStatus: '' },
+        { deletionStatus: 'pending' } // Also fix pending deletions
       ]
-    })
+    });
 
-    console.log(`🔧 Found ${propertiesToFix.length} properties that need fixing`)
+    console.log(`🔍 Found ${propertiesToFix.length} properties with status issues`);
 
-    const fixedProperties = []
-    let alreadyCorrect = 0
+    const results = {
+      total: propertiesToFix.length,
+      fixed: 0,
+      skipped: 0,
+      errors: 0,
+      details: [] as any[]
+    };
 
     // Fix each property
     for (const property of propertiesToFix) {
       try {
-        property.deletionStatus = 'active'
-        await property.save()
+        const oldStatus = property.deletionStatus;
         
-        fixedProperties.push({
-          _id: property._id,
-          propertyId: property.propertyId,
-          title: property.title
-        })
+        // Set deletionStatus to 'active' for properties that should be visible
+        property.deletionStatus = 'active';
         
-        console.log(`✅ Fixed property: ${property.title} (ID: ${property.propertyId || property._id})`)
+        await property.save();
+        
+        results.fixed++;
+        results.details.push({
+          propertyId: property._id,
+          title: property.title,
+          oldStatus: oldStatus || 'missing',
+          newStatus: 'active',
+          fixType: 'status_fix'
+        });
+        
+        console.log(`✅ Fixed property ${property._id}: ${oldStatus || 'missing'} → active`);
+        
       } catch (error) {
-        console.error(`❌ Failed to fix property ${property._id}:`, error)
+        results.errors++;
+        results.details.push({
+          propertyId: property._id,
+          title: property.title,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          fixType: 'error'
+        });
+        
+        console.error(`❌ Error fixing property ${property._id}:`, error);
       }
     }
 
-    // Count properties that are already correct
-    const correctProperties = await Property.find({ deletionStatus: 'active' })
-    alreadyCorrect = correctProperties.length
-
-    console.log(`✅ Property status fix completed:`)
-    console.log(`   - Total processed: ${propertiesToFix.length}`)
-    console.log(`   - Fixed: ${fixedProperties.length}`)
-    console.log(`   - Already correct: ${alreadyCorrect}`)
+    console.log(`🎯 Fix completed: ${results.fixed} fixed, ${results.errors} errors`);
 
     return NextResponse.json({
       success: true,
-      totalProcessed: propertiesToFix.length,
-      fixedCount: fixedProperties.length,
-      alreadyCorrect: alreadyCorrect,
-      fixedProperties: fixedProperties
-    })
+      message: `Fixed ${results.fixed} properties with status issues`,
+      results
+    });
 
   } catch (error) {
-    console.error('Error fixing properties status:', error)
+    console.error('Error fixing properties status:', error);
     return NextResponse.json(
-      { error: 'Failed to fix properties status' },
+      { success: false, error: 'Failed to fix properties status' },
       { status: 500 }
-    )
+    );
   }
 }

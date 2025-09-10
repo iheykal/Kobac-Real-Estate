@@ -145,6 +145,22 @@ interface PropertyDetailProps {
 export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose }) => {
   const router = useRouter()
   const [selectedImage, setSelectedImage] = useState(0)
+  
+  // Get all image URLs and log debug info
+  const allImageUrls = React.useMemo(() => {
+    const urls = getAllImageUrls(property);
+    console.log('🖼️ PropertyDetail v2.1: Property image data:', {
+      propertyId: property.propertyId || property._id,
+      title: property.title,
+      thumbnailImage: property.thumbnailImage,
+      images: property.images,
+      imagesLength: property.images?.length,
+      allImageUrls: urls,
+      allImageUrlsCount: urls.length,
+      thumbnailInImages: property.images?.includes(property.thumbnailImage)
+    });
+    return urls;
+  }, [property]);
   const [isFavorite, setIsFavorite] = useState(false)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
@@ -316,7 +332,11 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
     const isLeftSwipe = distance > minSwipeDistance
     const isRightSwipe = distance < -minSwipeDistance
 
-    const totalImages = (property.thumbnailImage ? 1 : 0) + (property.images ? property.images.length : 0)
+    // Calculate total valid images using resolver
+    const validImages = getAllImageUrls(property).filter(img => 
+      !img.includes('uze.png') && !img.includes('/icons/')
+    );
+    const totalImages = validImages.length;
 
     if (isLeftSwipe) {
       // Swipe left - go to next image
@@ -355,39 +375,126 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
               <div className="space-y-6">
                 {/* Main Image */}
                 <div 
-                  className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100"
-                  style={{ aspectRatio: imageAspectRatio }}
+                  className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center"
+                  style={{ 
+                    minHeight: '300px',
+                    maxHeight: '80vh',
+                    width: '100%'
+                  }}
                   onTouchStart={onTouchStart}
                   onTouchMove={onTouchMove}
                   onTouchEnd={onTouchEnd}
                 >
-                  <PropertyImageWithWatermarkFixed
-                    key={selectedImage}
-                    src={(() => {
-                      // Get all valid images using the resolver, filtering out Uze logos
-                      const allImages = getAllImageUrls(property).filter(img => 
-                        !img.includes('uze.png') && !img.includes('/icons/')
+                  {(() => {
+                    // Get all valid images using the resolver, filtering out Uze logos
+                    const allImages = getAllImageUrls(property).filter(img => 
+                      !img.includes('uze.png') && !img.includes('/icons/')
+                    );
+                    
+                    // Ensure we have valid images and selectedImage is within bounds
+                    if (allImages.length === 0) {
+                      return (
+                        <PropertyImageWithWatermarkFixed
+                          key="fallback"
+                          src={getPrimaryImageUrl(property) || ''}
+                          alt={property.title}
+                          className="w-full h-full"
+                          style={{
+                            maxHeight: '80vh',
+                            width: 'auto',
+                            height: 'auto',
+                            maxWidth: '100%',
+                            objectFit: 'contain'
+                          }}
+                          showWatermark={true}
+                          watermarkPosition="center"
+                          watermarkSize="large"
+                          property={property}
+                        />
                       );
-                      
-                      // Ensure we have valid images and selectedImage is within bounds
-                      if (allImages.length === 0) {
-                        return getPrimaryImageUrl(property); // Use resolver fallback
-                      }
-                      
-                      // Make sure selectedImage is within valid range
-                      const validIndex = Math.min(selectedImage, allImages.length - 1);
-                      const selectedImageUrl = allImages[validIndex];
-                      
-                      return selectedImageUrl;
-                    })()}
-                    alt={property.title}
-                    className="w-full h-full"
-                    showWatermark={true}
-                    watermarkPosition="center"
-                    watermarkSize="large"
-                  />
+                    }
+                    
+                    // Make sure selectedImage is within valid range
+                    const validIndex = Math.min(selectedImage, allImages.length - 1);
+                    const selectedImageUrl = allImages[validIndex];
+                    
+                    return (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <PropertyImageWithWatermarkFixed
+                          key={`main-${validIndex}`}
+                          src={selectedImageUrl}
+                          alt={`${property.title} - Image ${validIndex + 1}`}
+                          className="w-full h-full"
+                          style={{
+                            maxHeight: '80vh',
+                            width: 'auto',
+                            height: 'auto',
+                            maxWidth: '100%',
+                            objectFit: 'contain'
+                          }}
+                          showWatermark={validIndex === 0} // Only show watermark on first image
+                          watermarkPosition="center"
+                          watermarkSize="large"
+                          property={property}
+                          index={validIndex}
+                          onLoad={handleImageLoad}
+                        />
+                      </div>
+                    );
+                  })()}
                  
-                  {/* Image Navigation Arrows */}
+                  {/* Image Navigation Arrows - Only show if more than 1 image */}
+                  {(() => {
+                    // Get all valid images using the resolver, filtering out Uze logos
+                    const validImages = getAllImageUrls(property).filter(img => 
+                      !img.includes('uze.png') && !img.includes('/icons/')
+                    );
+                    
+                    const totalValidImages = validImages.length;
+                    
+                    // Only show arrows if there are multiple images
+                    if (totalValidImages <= 1) {
+                      return null;
+                    }
+                    
+                    // Get the current image index, ensuring it's within bounds
+                    const currentIndex = Math.min(selectedImage, totalValidImages - 1);
+                    
+                    return (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const prevIndex = currentIndex > 0 ? currentIndex - 1 : totalValidImages - 1;
+                            handleImageChange(prevIndex);
+                          }}
+                          className="absolute left-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-white/50 text-gray-800 hover:bg-white/80 hover:scale-110 transition-all shadow-lg z-10"
+                          aria-label="Previous image"
+                        >
+                          <ArrowLeft className="w-6 h-6" />
+                        </button>
+                        
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const nextIndex = currentIndex < totalValidImages - 1 ? currentIndex + 1 : 0;
+                            handleImageChange(nextIndex);
+                          }}
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-white/50 text-gray-800 hover:bg-white/80 hover:scale-110 transition-all shadow-lg z-10"
+                          aria-label="Next image"
+                        >
+                          <ArrowRight className="w-6 h-6" />
+                        </button>
+                        
+                        {/* Image counter */}
+                        <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
+                          {currentIndex + 1} / {totalValidImages}
+                        </div>
+                      </>
+                    );
+                  })()}
+                  
+                  {/* Image Navigation Dots - Only show if more than 1 image */}
                   {(() => {
                     // Calculate total valid images using resolver
                     const validImages = getAllImageUrls(property).filter(img => 
@@ -395,83 +502,97 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                     );
                     
                     const totalValidImages = validImages.length;
-                    return totalValidImages > 1 ? (
-                      <>
-                        <button
-                          onClick={() => handleImageChange(selectedImage > 0 ? selectedImage - 1 : totalValidImages - 1)}
-                          className="absolute left-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-transparent text-white hover:bg-white/20 hover:scale-110 transition-all shadow-lg"
-                        >
-                          <ArrowLeft className="w-6 h-6" />
-                        </button>
-                        
-                        <button
-                          onClick={() => handleImageChange(selectedImage < totalValidImages - 1 ? selectedImage + 1 : 0)}
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-transparent text-white hover:bg-white/20 hover:scale-110 transition-all shadow-lg"
-                        >
-                          <ArrowRight className="w-6 h-6" />
-                        </button>
-                      </>
-                    ) : null;
-                  })()}
-                  
-                  {/* Image Navigation Dots */}
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                    <div className="flex space-x-2">
-                      {(() => {
-                        // Calculate total valid images using resolver
-                        const validImages = getAllImageUrls(property).filter(img => 
-                          !img.includes('uze.png') && !img.includes('/icons/')
-                        );
-                        
-                        const totalValidImages = validImages.length;
-                        return Array.from({ length: totalValidImages }, (_, index) => (
-                          <button
-                            key={index}
-                            onClick={() => handleImageChange(index)}
-                            className={`w-3 h-3 rounded-full transition-all ${
-                              index === selectedImage 
-                                ? 'bg-blue-500 scale-125' 
-                                : 'bg-white/70 hover:bg-blue-300'
-                            }`}
-                          />
-                        ));
-                      })()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Thumbnail Images */}
-                <div className="grid grid-cols-6 gap-2">
-                  {(() => {
-                    // Calculate valid images using resolver
-                    const validImages = getAllImageUrls(property).filter(img => 
-                      !img.includes('uze.png') && !img.includes('/icons/')
-                    );
                     
-                    return validImages.map((image, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleImageChange(index)}
-                        className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                          index === selectedImage 
-                            ? 'border-blue-500' 
-                            : 'border-transparent hover:border-blue-300'
-                        }`}
-                      >
-                        <PropertyImageWithWatermarkFixed
-                          src={image}
-                          alt={`${property.title} - Image ${index + 1}`}
-                          className="w-full h-full"
-                          showWatermark={false}
-                          watermarkPosition="center"
-                          watermarkSize="small"
-                        />
-                      </button>
-                    ));
+                    // Only show dots if there are multiple images
+                    if (totalValidImages <= 1) {
+                      return null;
+                    }
+                    
+                    return (
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                        <div className="flex space-x-2">
+                          {Array.from({ length: totalValidImages }, (_, index) => (
+                            <button
+                              key={index}
+                              onClick={() => handleImageChange(index)}
+                              className={`w-3 h-3 rounded-full transition-all ${
+                                index === selectedImage 
+                                  ? 'bg-blue-500 scale-125' 
+                                  : 'bg-white/70 hover:bg-blue-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
                   })()}
                 </div>
-              </div>
 
+                {/* Thumbnail Images - AGGRESSIVE DUPLICATE REMOVAL */}
+                {(() => {
+                  // Get all images and remove ALL duplicates (including thumbnail duplicates)
+                  const allImages = property.images || [];
+                  const thumbnailUrl = property.thumbnailImage;
+                  
+                  // Remove duplicates and filter out thumbnail
+                  const uniqueImages = [];
+                  const seenUrls = new Set();
+                  
+                  for (const img of allImages) {
+                    // Skip if it's the thumbnail or if we've seen this URL before
+                    if (img === thumbnailUrl || seenUrls.has(img)) {
+                      console.log('🔄 Filtering out duplicate:', img);
+                      continue;
+                    }
+                    
+                    // Skip system images
+                    if (img.includes('uze.png') || img.includes('/icons/')) {
+                      continue;
+                    }
+                    
+                    uniqueImages.push(img);
+                    seenUrls.add(img);
+                  }
+                  
+                  console.log('🖼️ AGGRESSIVE DUPLICATE REMOVAL:');
+                  console.log('  Property Title:', property.title);
+                  console.log('  Thumbnail Image:', thumbnailUrl);
+                  console.log('  Raw Images Count:', allImages.length);
+                  console.log('  Raw Images:', allImages);
+                  console.log('  Unique Images Count:', uniqueImages.length);
+                  console.log('  Unique Images:', uniqueImages);
+                  console.log('  Duplicates Removed:', allImages.length - uniqueImages.length);
+                  
+                  // Only show the gallery if there are unique additional images
+                  if (uniqueImages.length === 0) {
+                    console.log('🖼️ No unique additional images to show');
+                    return null;
+                  }
+                  
+                  return (
+                    <div className="grid grid-cols-6 gap-2">
+                      {uniqueImages.map((image, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleImageChange(index + 1)} // +1 because index 0 is the main thumbnail
+                          className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                            index + 1 === selectedImage 
+                              ? 'border-blue-500 scale-105 shadow-md' 
+                              : 'border-transparent hover:border-gray-300 hover:scale-105'}`}
+                        >
+                          <PropertyImageWithWatermarkFixed
+                            property={property}
+                            index={index + 1}
+                            className="w-full h-full object-contain"
+                            alt={`${property.title} - Thumbnail ${index + 1}`}
+                            showWatermark={false}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
               {/* Right Side - Property Details */}
               <div className="space-y-6">
                 {/* Title & Price */}

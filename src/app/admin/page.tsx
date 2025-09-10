@@ -21,7 +21,8 @@ import {
   Building,
   MapPin,
   Award,
-  Crown
+  Crown,
+  Image
 } from 'lucide-react'
 import DistrictPieChart from '@/components/charts/DistrictPieChart'
 import PropertySearch from '@/components/admin/PropertySearch'
@@ -55,6 +56,15 @@ export default function AdminDashboard() {
       console.log('❌ Admin - Access denied for role:', contextUser.role)
       setError('Access denied. Only superadmin can access this dashboard.')
       setLoading(false)
+    } else {
+      // Handle case where contextUser is null but isAuthenticated is true (deployment issue)
+      console.log('⚠️ Admin - User context is null but authenticated, attempting to validate session')
+      setTimeout(() => {
+        if (!contextUser) {
+          console.log('❌ Admin - Still no user context after timeout, redirecting to home')
+          router.push('/')
+        }
+      }, 2000) // Wait 2 seconds for context to load
     }
   }, [contextUser, isAuthenticated, contextLoading, router])
 
@@ -244,6 +254,14 @@ export default function AdminDashboard() {
       href: '/admin/fix-properties-status',
       color: 'from-emerald-500 to-teal-600',
       hoverColor: 'from-emerald-600 to-teal-700'
+    },
+    {
+      title: 'Fix Thumbnail Duplication',
+      description: 'Fix properties where thumbnail appears multiple times in gallery',
+      icon: Image,
+      href: '/admin/fix-thumbnail-duplication',
+      color: 'from-orange-500 to-red-600',
+      hoverColor: 'from-orange-600 to-red-700'
     }
   ]
 

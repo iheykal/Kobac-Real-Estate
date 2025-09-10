@@ -1,94 +1,80 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
-import Property from '@/models/Property';
+import { Property } from '@/models/Property';
+import { connectToDatabase } from '@/lib/mongodb';
+
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
-    await connectDB();
+    console.log('🔍 Debug: Checking properties in database...');
     
-    console.log('🔍 Debug properties API called');
+    // Connect to database
+    await connectToDatabase();
     
     // Get all properties
-    const allProperties = await Property.find({}).sort({ createdAt: -1 }).limit(20);
+    const allProperties = await Property.find({}).lean();
     
-    // Get properties with different deletion statuses
-    const activeProperties = await Property.find({ deletionStatus: 'active' }).sort({ createdAt: -1 }).limit(10);
-    const pendingDeletionProperties = await Property.find({ deletionStatus: 'pending_deletion' }).sort({ createdAt: -1 }).limit(10);
-    const deletedProperties = await Property.find({ deletionStatus: 'deleted' }).sort({ createdAt: -1 }).limit(10);
-    const propertiesWithoutStatus = await Property.find({ deletionStatus: { $exists: false } }).sort({ createdAt: -1 }).limit(10);
+    // Get properties with different statuses
+    const activeProperties = await Property.find({ 
+      deletionStatus: { $ne: 'deleted' } 
+    }).lean();
     
-    // Get properties that should be visible on main page
-    const mainPageQuery = { deletionStatus: { $ne: 'deleted' } };
-    const mainPageProperties = await Property.find(mainPageQuery).sort({ createdAt: -1 }).limit(10);
+    const deletedProperties = await Property.find({ 
+      deletionStatus: 'deleted' 
+    }).lean();
     
-    // Get the most recent properties
-    const recentProperties = await Property.find({}).sort({ createdAt: -1 }).limit(5);
+    const pendingDeletionProperties = await Property.find({ 
+      deletionStatus: 'pending_deletion' 
+    }).lean();
     
-    console.log('📊 Property Statistics:', {
+    console.log('🔍 Database property counts:', {
       total: allProperties.length,
       active: activeProperties.length,
-      pending_deletion: pendingDeletionProperties.length,
       deleted: deletedProperties.length,
-      noStatus: propertiesWithoutStatus.length,
-      mainPageQuery: mainPageProperties.length
+      pendingDeletion: pendingDeletionProperties.length
     });
     
-    // Check if there are any properties without deletionStatus
-    if (propertiesWithoutStatus.length > 0) {
-      console.log('⚠️ Properties without deletionStatus found:', propertiesWithoutStatus.map(p => ({
-        id: p._id,
-        title: p.title,
-        createdAt: p.createdAt
-      })));
-    }
-    
-    // Check the most recent properties
-    if (recentProperties.length > 0) {
-      console.log('🆕 Most recent properties:', recentProperties.map(p => ({
-        id: p._id,
-        title: p.title,
-        deletionStatus: p.deletionStatus,
-        createdAt: p.createdAt,
-        agentId: p.agentId
-      })));
-    }
+    // Sample a few properties to see their structure
+    const sampleProperties = allProperties.slice(0, 3).map(prop => ({
+      _id: prop._id,
+      title: prop.title,
+      district: prop.district,
+      location: prop.location,
+      price: prop.price,
+      agentId: prop.agentId,
+      deletionStatus: prop.deletionStatus,
+      thumbnailImage: prop.thumbnailImage,
+      images: prop.images,
+      createdAt: prop.createdAt,
+      updatedAt: prop.updatedAt
+    }));
     
     return NextResponse.json({
       success: true,
-      stats: {
+      counts: {
         total: allProperties.length,
         active: activeProperties.length,
-        pending_deletion: pendingDeletionProperties.length,
         deleted: deletedProperties.length,
-        noStatus: propertiesWithoutStatus.length,
-        mainPageQuery: mainPageProperties.length
+        pendingDeletion: pendingDeletionProperties.length
       },
-      properties: allProperties.map(p => ({
-        id: p._id,
-        propertyId: p.propertyId,
-        title: p.title,
-        location: p.location,
-        district: p.district,
-        deletionStatus: p.deletionStatus,
-        createdAt: p.createdAt,
-        agentId: p.agentId
-      })),
-      mainPageProperties: mainPageProperties.map(p => ({
-        id: p._id,
-        propertyId: p.propertyId,
-        title: p.title,
-        deletionStatus: p.deletionStatus,
-        createdAt: p.createdAt
-      })),
-      propertiesWithoutStatus: propertiesWithoutStatus.map(p => ({
-        id: p._id,
-        title: p.title,
-        createdAt: p.createdAt
+      sampleProperties,
+      allProperties: allProperties.map(prop => ({
+        _id: prop._id,
+        title: prop.title,
+        district: prop.district,
+        location: prop.location,
+        price: prop.price,
+        agentId: prop.agentId,
+        deletionStatus: prop.deletionStatus,
+        createdAt: prop.createdAt
       }))
     });
     
-  } catch (error) {
-    console.error('Error in debug properties:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('❌ Debug properties error:', error);
+    return NextResponse.json(
+      { success: false, error: error?.message || 'Failed to debug properties' },
+      { status: 500 }
+    );
   }
 }

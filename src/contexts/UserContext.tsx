@@ -97,10 +97,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         // Check server session first with timeout
         console.log('🔍 UserContext: Checking server session...')
         const controller = new AbortController()
+        // Increase timeout for production deployments
+        const timeoutDuration = process.env.NODE_ENV === 'production' ? 10000 : 5000;
         const timeoutId = setTimeout(() => {
           console.log('⏰ UserContext: Auth check timeout, aborting request')
           controller.abort()
-        }, 5000) // 5 second timeout
+        }, timeoutDuration)
         
         const meRes = await fetch('/api/auth/me', { 
           credentials: 'include',
@@ -108,7 +110,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           headers: {
             'Cache-Control': 'no-cache',
             'Pragma': 'no-cache'
-          }
+          },
+          // Add retry logic for production
+          ...(process.env.NODE_ENV === 'production' && {
+            mode: 'cors',
+            cache: 'no-store'
+          })
         })
         
         clearTimeout(timeoutId)

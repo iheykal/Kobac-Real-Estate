@@ -3,12 +3,18 @@ export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {
+    console.log('📸 R2 upload request received');
+    
     const form = await req.formData();
     const files = form.getAll('files');
+    const listingId = form.get('listingId') as string;
 
     if (!files.length) {
       return Response.json({ success: false, error: 'No files provided' }, { status: 400 });
     }
+
+    console.log(`📸 Uploading ${files.length} files to R2 for listing: ${listingId || 'general'}`);
+    console.log('📸 Files to upload:', files.map(f => ({ name: f.name, size: f.size, type: f.type })));
 
     // dynamic import to keep bundle small
     const [{ S3Client, PutObjectCommand }] = await Promise.all([
@@ -33,26 +39,79 @@ export async function POST(req: Request) {
 
     for (const f of files) {
       if (!(f instanceof File)) continue;
-      const bytes = await f.arrayBuffer();
-      const key = `uploads/${Date.now()}-${cryptoRandom(8)}-${sanitizeName(f.name)}`;
+      
+      console.log(`🔄 Processing file: ${f.name} (${f.type})`);
+      
+      let processedFile: { buffer: Buffer; filename: string; contentType: string };
+      
+      // Check if it's an image file
+      if (f.type.startsWith('image/')) {
+        console.log('📸 Converting image to WebP format...');
+        try {
+          // Import the image processor
+          const { processImageFileSafe } = await import('@/lib/imageProcessor');
+          
+          processedFile = await processImageFileSafe(f, {
+            quality: 85, // Good balance of quality and file size
+            width: 1920, // Max width for web display
+            height: 1080, // Max height for web display
+            fit: 'inside' // Maintain aspect ratio
+          });
+          console.log(`✅ WebP conversion successful: ${processedFile.filename}`);
+        } catch (error) {
+          console.error('❌ WebP conversion failed, using original:', error);
+          // Fallback to original file
+          const bytes = await f.arrayBuffer();
+          processedFile = {
+            buffer: Buffer.from(bytes),
+            filename: sanitizeName(f.name),
+            contentType: f.type || 'application/octet-stream'
+          };
+        }
+      } else {
+        // For non-image files, use original
+        console.log('📄 Non-image file, using original format');
+        const bytes = await f.arrayBuffer();
+        processedFile = {
+          buffer: Buffer.from(bytes),
+          filename: sanitizeName(f.name),
+          contentType: f.type || 'application/octet-stream'
+        };
+      }
+      
+      // Create organized directory structure - match the property upload route
+      const baseDir = listingId ? `kobac-real-estate/uploads/listings/${listingId}` : 'kobac-real-estate/uploads';
+      const timestamp = Date.now();
+      const randomId = cryptoRandom(8);
+      const key = `${baseDir}/${timestamp}-${randomId}-${processedFile.filename}`;
 
       const cmd = new PutObjectCommand({
         Bucket: bucket,
         Key: key,
-        Body: Buffer.from(bytes),
-        ContentType: f.type || 'application/octet-stream',
+        Body: processedFile.buffer,
+        ContentType: processedFile.contentType,
       });
 
       await s3.send(cmd);
 
+      // Generate correct R2 public URL format: https://bucket-name.r2.dev/key
       const url = publicBase
         ? `${publicBase.replace(/\/$/, '')}/${key}`
-        : `${process.env.R2_ENDPOINT!.replace(/^https?:\/\/|\/$/g, '')}/${bucket}/${key}`;
+        : `https://${bucket}.r2.dev/${key}`;
 
       results.push({ key, url });
+      
+      console.log(`✅ Uploaded: ${key} -> ${url}`);
     }
 
-    return Response.json({ success: true, files: results });
+    console.log(`🎉 Successfully uploaded ${results.length} files to R2 with WebP conversion`);
+    console.log('📸 Final upload results:', results.map(r => ({ key: r.key, url: r.url })));
+
+    return Response.json({ 
+      success: true, 
+      files: results,
+      message: `Successfully uploaded ${results.length} images to Cloudflare R2 with WebP optimization`
+    });
   } catch (err: any) {
     return Response.json(
       { success: false, error: err?.message || 'Upload failed' },

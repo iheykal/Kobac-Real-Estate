@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import crypto from "crypto";
-import { processImageFile } from "@/lib/imageProcessor";
+import { processImageFileSafe } from "@/lib/imageProcessor";
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 
@@ -124,15 +124,17 @@ export async function POST(req: NextRequest) {
     console.log('📊 Original file size:', file.size, 'bytes');
     console.log('📋 Original file type:', file.type);
 
-    // Process image to WebP format
+    // Process image to WebP format with fallback
     console.log('🔄 Converting avatar to WebP format...');
     let processedImage;
     try {
-      processedImage = await processImageFile(file, {
+      processedImage = await processImageFileSafe(file, {
         quality: 90, // High quality for avatars
         width: 400, // Optimal size for avatars
         height: 400,
-        fit: 'cover' // Square crop for avatars
+        fit: 'cover', // Square crop for avatars
+        fallbackToOriginal: true, // Enable fallback for safety
+        validateOutput: true
       });
       console.log('✅ Image processing completed');
     } catch (error) {
@@ -195,3 +197,5 @@ export async function POST(req: NextRequest) {
     }, { status: 500 });
   }
 }
+
+

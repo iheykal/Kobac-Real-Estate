@@ -65,6 +65,9 @@ export const useProperties = (featured?: boolean, filters?: FilterOptions) => {
         }
       }
       
+      // Always ask for latest first so new uploads surface immediately
+      params.append('sort', 'latest');
+
       const response = await fetch(`/api/properties?${params.toString()}`, {
         credentials: 'include'
       });

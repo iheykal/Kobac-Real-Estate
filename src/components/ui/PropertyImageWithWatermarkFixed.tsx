@@ -2,14 +2,22 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
+import PropertyImage from './PropertyImage'
 
 interface PropertyImageWithWatermarkProps {
-  src: string
+  src?: string // Made optional to support property-based image resolution
   alt: string
   className?: string
   showWatermark?: boolean
   watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center'
   watermarkSize?: 'small' | 'medium' | 'large'
+  property?: {
+    thumbnailImage?: string;
+    images?: string[];
+    image?: string;
+    title?: string;
+  };
+  index?: number; // Add index prop to specify which image to show
 }
 
 export const PropertyImageWithWatermarkFixed: React.FC<PropertyImageWithWatermarkProps> = ({
@@ -18,7 +26,9 @@ export const PropertyImageWithWatermarkFixed: React.FC<PropertyImageWithWatermar
   className = '',
   showWatermark = true,
   watermarkPosition = 'center',
-  watermarkSize = 'medium'
+  watermarkSize = 'medium',
+  property,
+  index = 0 // Default to 0 for backward compatibility
 }) => {
   // Watermark size classes
   const watermarkSizeClasses = {
@@ -39,29 +49,42 @@ export const PropertyImageWithWatermarkFixed: React.FC<PropertyImageWithWatermar
   return (
     <div className={`relative overflow-hidden ${className}`}>
       {/* Main Property Image */}
-      <motion.img
-        src={src}
-        alt={alt}
-        className="w-full h-full object-cover object-center"
-        style={{
-          imageRendering: 'auto',
-          backfaceVisibility: 'hidden',
-          transform: 'translateZ(0)'
-        }}
-        initial={{ opacity: 0, scale: 1.05 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.2 }}
-        loading="lazy"
-        onError={(e) => {
-          const target = e.target as HTMLImageElement;
-          console.log('🖼️ Image failed to load:', src);
-          // Use a more appropriate fallback image
-          target.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';
-        }}
-        onLoad={() => {
-          console.log('🖼️ Image loaded successfully:', src);
-        }}
-      />
+      {property ? (
+        <PropertyImage
+          property={property}
+          alt={alt}
+          className="w-full h-full"
+          loading="lazy"
+          index={index} // Pass the index to PropertyImage
+          onError={(error) => {
+            console.log(`🖼️ Property image at index ${index} failed to load:`, error);
+          }}
+        />
+      ) : (
+        <motion.img
+          src={src}
+          alt={alt}
+          className="w-full h-full object-cover object-center"
+          style={{
+            imageRendering: 'auto',
+            backfaceVisibility: 'hidden',
+            transform: 'translateZ(0)'
+          }}
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.2 }}
+          loading="lazy"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            console.log('🖼️ Image failed to load:', src);
+            // Don't use fallback images - show error state
+            target.style.display = 'none';
+          }}
+          onLoad={() => {
+            console.log('🖼️ Image loaded successfully:', src);
+          }}
+        />
+      )}
       
       {/* Company Logo Watermark */}
       {showWatermark && (

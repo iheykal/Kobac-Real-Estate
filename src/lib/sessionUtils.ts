@@ -38,24 +38,30 @@ export function setSessionCookie(
 ) {
   const cookieValue = encodeURIComponent(JSON.stringify(sessionPayload));
   
-  response.cookies.set('kobac_session', cookieValue, {
+  // Determine if we're in production based on environment
+  const isProd = isProduction || process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+  
+  // Cookie options that work in both development and production
+  const cookieOptions = {
     httpOnly: true,
-    sameSite: 'lax',
-    secure: isProduction, // Only secure in production
+    sameSite: 'lax' as const,
+    secure: isProd, // Secure in production (HTTPS required)
     path: '/',
     maxAge: 60 * 60 * 24 * 7, // 7 days
-    domain: undefined
+    domain: undefined // Let browser handle domain automatically
+  };
+  
+  console.log('🍪 Setting session cookie with options:', { 
+    isProd, 
+    secure: cookieOptions.secure, 
+    sameSite: cookieOptions.sameSite,
+    path: cookieOptions.path 
   });
   
+  response.cookies.set('kobac_session', cookieValue, cookieOptions);
+  
   // Also set a backup cookie with different name for compatibility
-  response.cookies.set('kobac_session_alt', cookieValue, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: isProduction,
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-    domain: undefined
-  });
+  response.cookies.set('kobac_session_alt', cookieValue, cookieOptions);
 }
 
 /**
@@ -63,24 +69,27 @@ export function setSessionCookie(
  * @param response - The NextResponse object
  */
 export function clearSessionCookie(response: NextResponse) {
+  // Determine if we're in production
+  const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+  
   // Clear both possible cookie names
-  response.cookies.set('kobac_session', '', {
+  const clearOptions = {
     httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    secure: isProd, // Match the same security setting as when cookie was set
     path: '/',
     maxAge: 0,
     domain: undefined
+  };
+  
+  console.log('🍪 Clearing session cookies with options:', { 
+    isProd, 
+    secure: clearOptions.secure, 
+    sameSite: clearOptions.sameSite 
   });
   
-  response.cookies.set('kobac_session_alt', '', {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 0,
-    domain: undefined
-  });
+  response.cookies.set('kobac_session', '', clearOptions);
+  response.cookies.set('kobac_session_alt', '', clearOptions);
 }
 
 /**

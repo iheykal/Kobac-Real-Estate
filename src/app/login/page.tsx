@@ -33,7 +33,7 @@ export default function LoginPage() {
     
     // Validate phone number format (should have 9 digits)
     if (!/^\d{9}$/.test(formData.phone)) {
-      alert('Please enter a valid phone number (9 digits)')
+      alert('Please enter a valid phone number (9 digits, e.g., 61xxxxxxx)')
       return
     }
     
@@ -102,7 +102,7 @@ export default function LoginPage() {
                 <Input
                   type="tel"
                   inputMode="numeric"
-                  placeholder="Enter your phone number"
+                  placeholder="Enter phone number (9 digits)"
                   value={formData.phone}
                   onChange={(e) => {
                     const numbersOnly = e.target.value.replace(/\D/g, '')
@@ -123,15 +123,14 @@ export default function LoginPage() {
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
-                  inputMode="numeric"
+                  inputMode="text"
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '')
-                    handleInputChange('password', value)
+                    handleInputChange('password', e.target.value)
                   }}
                   required
-                  maxLength={6}
+                  minLength={5}
                   className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 pr-12 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
                 />
                 <button
@@ -142,7 +141,7 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-1">Use only numbers (4-6 digits)</p>
+              <p className="text-xs text-gray-500 mt-1">Minimum 5 characters with numbers or letters</p>
             </div>
 
             {/* Forgot Password */}
