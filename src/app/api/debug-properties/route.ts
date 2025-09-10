@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Property } from '@/models/Property';
+import Property from '@/models/Property';
 import { connectToDatabase } from '@/lib/mongodb';
 
 export const runtime = 'nodejs';

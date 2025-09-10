@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
       results.propertiesCollection = {
         name: 'properties',
         count: propertiesCount,
-        sampleId: propertiesSample ? propertiesSample._id.toString() : null
+        sampleId: propertiesSample ? (propertiesSample._id as any).toString() : null
       };
 
       console.log(`🔍 Properties collection: ${propertiesCount} documents`);
