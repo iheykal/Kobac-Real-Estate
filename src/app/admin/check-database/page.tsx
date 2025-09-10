@@ -136,7 +136,7 @@ export default function CheckDatabasePage() {
                             </div>
                             <div>
                               <div className="font-medium">Type:</div>
-                              <div>{property.type || 'N/A'}</div>
+                              <div>{property.propertyType || 'N/A'}</div>
                             </div>
                             <div>
                               <div className="font-medium">Status:</div>

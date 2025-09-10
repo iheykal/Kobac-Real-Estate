@@ -34,11 +34,13 @@ export async function GET(request: NextRequest) {
     // Get the highest existing propertyId
     const highestProperty = await Property.findOne(
       { propertyId: { $exists: true, $ne: null } },
-      {},
+      { propertyId: 1, _id: 0 }, // Only fetch the propertyId field
       { sort: { propertyId: -1 } }
-    );
+    ).lean();
     
-    let nextId = highestProperty ? highestProperty.propertyId + 1 : 1;
+    // Start from the next ID after the highest found, or 1 if no properties exist
+    const highestId = highestProperty?.propertyId;
+    let nextId = typeof highestId === 'number' ? highestId + 1 : 1;
     
     // Update properties without propertyId
     const updatePromises = propertiesWithoutId.map(async (property) => {

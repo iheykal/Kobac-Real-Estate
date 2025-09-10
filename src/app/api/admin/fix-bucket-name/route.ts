@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Fix thumbnailImage
-        if (hasThumbnail && property.thumbnailImage.includes(wrongBucket)) {
+        if (hasThumbnail && property.thumbnailImage && property.thumbnailImage.includes(wrongBucket)) {
           const newThumbnailImage = property.thumbnailImage.replace(wrongBucket, correctBucket);
           changes.oldUrl = property.thumbnailImage;
           changes.newUrl = newThumbnailImage;

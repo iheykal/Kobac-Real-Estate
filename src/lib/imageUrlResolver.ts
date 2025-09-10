@@ -144,6 +144,27 @@ export function isR2Url(imageUrl: string): boolean {
 }
 
 /**
+ * Gets additional image URLs (excluding the primary/thumbnail image)
+ * @param property - Property object with image fields
+ * @returns Array of additional image URLs
+ */
+export function getAdditionalImageUrls(property: {
+  thumbnailImage?: string;
+  images?: string[];
+  image?: string;
+}): string[] {
+  const allUrls = getAllImageUrls(property);
+  const primaryUrl = getPrimaryImageUrl(property);
+  
+  if (!primaryUrl) {
+    return allUrls;
+  }
+  
+  // Return all URLs except the primary one
+  return allUrls.filter(url => url !== primaryUrl);
+}
+
+/**
  * Checks if an image URL is a local upload
  * @param imageUrl - The image URL to check
  * @returns True if the URL is a local upload

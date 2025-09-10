@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
         title: property.title,
         createdAt: property.createdAt,
         deletionStatus: property.deletionStatus,
-        type: property.type,
+        propertyType: property.propertyType,
         price: property.price,
         location: property.location,
         thumbnailImage: property.thumbnailImage,

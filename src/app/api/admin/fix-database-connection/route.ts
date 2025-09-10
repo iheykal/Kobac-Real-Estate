@@ -62,8 +62,8 @@ export async function POST(request: NextRequest) {
         // Count properties with images
         const propertiesWithImages = await Property.find({
           $or: [
-            { thumbnailImage: { $exists: true, $ne: '', $ne: null } },
-            { images: { $exists: true, $ne: [], $ne: null } }
+            { thumbnailImage: { $exists: true, $nin: ['', null] } },
+            { images: { $exists: true, $nin: [[], null] } }
           ]
         });
         results.withImages = propertiesWithImages.length;

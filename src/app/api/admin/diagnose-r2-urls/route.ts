@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Add any other R2 domains found to the breakdown
-    for (const domain of allR2Domains) {
+    for (const domain of Array.from(allR2Domains)) {
       if (!domainBreakdown[domain]) {
         domainBreakdown[domain] = 0;
       }
