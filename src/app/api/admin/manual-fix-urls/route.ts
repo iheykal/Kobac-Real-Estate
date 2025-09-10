@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Fix thumbnailImage
-        if (hasThumbnail && property.thumbnailImage.includes('/uploads/listings/')) {
+        if (hasThumbnail && property.thumbnailImage && property.thumbnailImage.includes('/uploads/listings/')) {
           const newThumbnailImage = property.thumbnailImage.replace('/uploads/listings/', '/listings/');
           changes.oldUrl = property.thumbnailImage;
           changes.newUrl = newThumbnailImage;
