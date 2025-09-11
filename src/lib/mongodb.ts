@@ -30,28 +30,31 @@ async function connectDB() {
       bufferCommands: false,
       dbName: 'kobac-real-estate',
       // Optimized connection pool settings for Render
-      maxPoolSize: 10, // Reduced from 20 to avoid timeouts
-      minPoolSize: 2, // Reduced from 5
-      serverSelectionTimeoutMS: 10000, // Increased timeout
-      socketTimeoutMS: 45000, // Increased socket timeout
-      connectTimeoutMS: 15000, // Increased connection timeout
+      maxPoolSize: 5, // Further reduced for Render free tier
+      minPoolSize: 1, // Minimal pool size
+      serverSelectionTimeoutMS: 30000, // Increased timeout
+      socketTimeoutMS: 60000, // Increased socket timeout
+      connectTimeoutMS: 30000, // Increased connection timeout
       family: 4, // Use IPv4 only
-      maxIdleTimeMS: 60000, // Increased idle time
+      maxIdleTimeMS: 300000, // 5 minutes idle time
       heartbeatFrequencyMS: 10000, // Standard heartbeat
       retryWrites: true,
       retryReads: true,
       compressors: 'zlib', // Enable compression
       zlibCompressionLevel: 6, // Fast compression
       // Connection resilience settings
-      maxConnecting: 5, // Reduced from 10
-      waitQueueTimeoutMS: 10000, // Increased from 5000
+      maxConnecting: 2, // Minimal connecting
+      waitQueueTimeoutMS: 30000, // Increased wait timeout
       // Read preferences
-      readPreference: 'primaryPreferred', // Changed from secondaryPreferred
+      readPreference: 'primary', // Use primary for stability
       // Additional stability settings
       directConnection: false,
       maxStalenessSeconds: 90,
       // Connection monitoring
       monitorCommands: false,
+      // Render-specific optimizations
+      maxIdleTimeMS: 300000, // 5 minutes
+      serverSelectionRetryDelayMS: 2000, // Retry delay
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose: any) => {
