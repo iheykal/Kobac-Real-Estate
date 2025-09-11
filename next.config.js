@@ -71,6 +71,10 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   swcMinify: true,
   
+  // Performance optimizations
+  compress: true,
+  poweredByHeader: false,
+  
   // Ensure proper output for Render deployment
   output: 'standalone',
 }

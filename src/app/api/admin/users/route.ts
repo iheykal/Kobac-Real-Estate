@@ -9,24 +9,31 @@ export async function GET(request: NextRequest) {
     console.log('👑 SuperAdmin fetching users...');
     await connectDB();
 
-    // Check if user is SuperAdmin
-    const authResponse = await fetch(`${request.nextUrl.origin}/api/auth/me`, {
-      headers: {
-        cookie: request.headers.get('cookie') || '',
-      },
-    });
-
-    const authResult = await authResponse.json();
-    console.log('👑 Admin API auth check:', authResult);
+    // Check authentication using internal method
+    const { getSessionFromRequest } = await import('@/lib/sessionUtils');
+    const session = getSessionFromRequest(request);
     
-    if (!authResponse.ok || (!authResult.user && !authResult.data)) {
+    if (!session) {
+      console.log('❌ No valid session found');
       return NextResponse.json(
         { success: false, error: 'Authentication required' },
         { status: 401 }
       );
     }
 
-    const currentUser = authResult.user || authResult.data;
+    // Get user from database
+    const User = (await import('@/models/User')).default;
+    const currentUser = await User.findById(session.userId).select('_id fullName phone role status permissions');
+    
+    if (!currentUser) {
+      console.log('❌ User not found in database');
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 401 }
+      );
+    }
+
+    console.log('👑 Admin API auth check:', { userId: currentUser._id, role: currentUser.role });
     // Allow superadmin, agency, and users with admin permissions
     const allowedRoles = ['superadmin', 'super_admin', 'agency'];
     const hasAdminPermissions = currentUser.permissions?.canManageUsers;
