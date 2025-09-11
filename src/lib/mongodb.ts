@@ -49,11 +49,10 @@ async function connectDB() {
       readPreference: 'primary', // Use primary for stability
       // Additional stability settings
       directConnection: false,
-      maxStalenessSeconds: 90,
+      // Note: maxStalenessSeconds cannot be used with primary read preference
       // Connection monitoring
       monitorCommands: false,
-      // Render-specific optimizations
-      serverSelectionRetryDelayMS: 2000, // Retry delay
+      // Note: serverSelectionRetryDelayMS is not supported in current MongoDB driver
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose: any) => {

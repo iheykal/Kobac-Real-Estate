@@ -43,9 +43,14 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      // Allow local uploads during transition period
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/**',
+      },
     ],
-    // Allow local uploads during transition period
-    domains: ['localhost'],
   },
   
   // Optimized webpack config
