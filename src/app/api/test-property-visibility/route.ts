@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     
     // Immediately check if it's visible
     const visibleProperties = await Property.find({ deletionStatus: { $ne: 'deleted' } });
-    const ourProperty = visibleProperties.find(p => p._id.toString() === property._id.toString());
+    const ourProperty = visibleProperties.find(p => String((p as any)._id) === String((property as any)._id));
     
     console.log('🔍 Visibility check:', {
       totalVisible: visibleProperties.length,
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       .sort({ createdAt: -1 })
       .limit(10);
     
-    const ourPropertyInMainPage = mainPageProperties.find(p => p._id.toString() === property._id.toString());
+    const ourPropertyInMainPage = mainPageProperties.find(p => String((p as any)._id) === String((property as any)._id));
     
     console.log('🔍 Main page query check:', {
       mainPageFound: mainPageProperties.length,
