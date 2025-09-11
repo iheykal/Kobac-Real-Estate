@@ -522,7 +522,7 @@ export default function AgentDashboard() {
       if (allImages.length > 0) {
         try {
           console.log('📸 Uploading images to R2 with property ID:', propertyId)
-          console.log('📸 Files to upload:', allImages.map(f => ({ name: f.name, size: f.size, type: f.type })))
+          console.log('📸 Files to upload:', allImages.map(f => f instanceof File ? { name: f.name, size: f.size, type: f.type } : { name: 'unknown', size: 0, type: 'unknown' }))
           const uploadResults = await uploadPropertyImagesToR2(allImages, propertyId)
           console.log('📸 Upload results:', uploadResults)
           imageUrls = uploadResults.map(result => result.url)

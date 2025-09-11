@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`📸 Uploading ${files.length} files to R2 for listing: ${listingId || 'general'}`);
-    console.log('📸 Files to upload:', files.map(f => ({ name: f.name, size: f.size, type: f.type })));
+    console.log('📸 Files to upload:', files.map(f => f instanceof File ? { name: f.name, size: f.size, type: f.type } : { name: 'unknown', size: 0, type: 'unknown' }));
 
     // dynamic import to keep bundle small
     const [{ S3Client, PutObjectCommand }] = await Promise.all([
@@ -66,15 +66,17 @@ export async function POST(req: NextRequest) {
     for (const f of files) {
       if (!(f instanceof File)) continue;
       
-      console.log(`🔄 Processing property image: ${f.name} (${f.type})`);
+      // Type assertion since we've confirmed it's a File
+      const file = f as File;
+      console.log(`🔄 Processing property image: ${file.name} (${file.type})`);
       
       let processedFile: { buffer: Buffer; filename: string; contentType: string };
       
       // Check if it's an image file
-      if (f.type.startsWith('image/')) {
+      if (file.type.startsWith('image/')) {
         console.log('📸 Converting property image to WebP format...');
         try {
-          processedFile = await processImageFileSafe(f, {
+          processedFile = await processImageFileSafe(file, {
             quality: 85, // Good balance of quality and file size for property images
             width: 1920, // Max width for web display
             height: 1080, // Max height for web display
@@ -84,21 +86,21 @@ export async function POST(req: NextRequest) {
         } catch (error) {
           console.error('❌ WebP conversion failed, using original:', error);
           // Fallback to original file
-          const bytes = await f.arrayBuffer();
+          const bytes = await file.arrayBuffer();
           processedFile = {
             buffer: Buffer.from(bytes),
-            filename: sanitizeName(f.name),
-            contentType: f.type || 'application/octet-stream'
+            filename: sanitizeName(file.name),
+            contentType: file.type || 'application/octet-stream'
           };
         }
       } else {
         // For non-image files, use original
         console.log('📄 Non-image file, using original format');
-        const bytes = await f.arrayBuffer();
+        const bytes = await file.arrayBuffer();
         processedFile = {
           buffer: Buffer.from(bytes),
-          filename: sanitizeName(f.name),
-          contentType: f.type || 'application/octet-stream'
+          filename: sanitizeName(file.name),
+          contentType: file.type || 'application/octet-stream'
         };
       }
       

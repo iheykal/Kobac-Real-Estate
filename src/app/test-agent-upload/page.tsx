@@ -18,7 +18,7 @@ export default function TestAgentUpload() {
   const handleAdditionalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     setAdditionalFiles(files)
-    console.log('📸 Additional files selected:', files.map(f => f.name))
+    console.log('📸 Additional files selected:', files.map(f => f instanceof File ? f.name : 'unknown'))
   }
 
   const handleTest = async () => {
