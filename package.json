@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "fix-properties": "node scripts/fix-existing-properties.js"
+    "fix-properties": "node scripts/fix-existing-properties.js",
+    "force-deploy": "node force-deploy.js",
+    "deploy": "npm run build && git add . && git commit -m 'Deploy' && git push origin main"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.0.0",

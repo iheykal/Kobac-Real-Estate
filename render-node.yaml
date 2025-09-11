@@ -1,15 +1,19 @@
+# Alternative Node.js configuration for Render
+# Use this if Docker deployment fails
 services:
   - type: web
-    name: kobac-real-estate
-    env: docker
+    name: kobac-real-estate-node
+    env: node
     plan: starter
-    dockerfilePath: ./Dockerfile
-    buildCommand: docker build -t kobac-real-estate .
-    startCommand: docker run -p $PORT:3000 kobac-real-estate
+    buildCommand: |
+      npm ci --only=production
+      npm run build
+    startCommand: npm start
     healthCheckPath: /
     autoDeploy: true
     branch: main
     region: oregon
+    nodeVersion: "20"
     envVars:
       - key: NODE_ENV
         value: production

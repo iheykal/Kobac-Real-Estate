@@ -128,7 +128,7 @@ export default function DebugR2Images() {
                 <div className="space-y-1 text-sm">
                   {Object.entries(result.headers).map(([key, value]) => (
                     <div key={key}>
-                      <span className="font-medium">{key}:</span> {value || 'Not set'}
+                      <span className="font-medium">{key}:</span> {typeof value === 'object' ? JSON.stringify(value) : String(value || 'Not set')}
                     </div>
                   ))}
                 </div>
