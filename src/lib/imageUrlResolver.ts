@@ -126,7 +126,7 @@ export function getAllImageUrls(property: {
   }
   
   // If we have multiple URLs but they're all the same, return only one
-  const uniqueUrls = [...new Set(finalUrls)];
+  const uniqueUrls = Array.from(new Set(finalUrls));
   if (uniqueUrls.length === 1 && finalUrls.length > 1) {
     return [uniqueUrls[0]];
   }

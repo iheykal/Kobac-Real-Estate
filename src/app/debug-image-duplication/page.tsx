@@ -32,7 +32,7 @@ export default function DebugImageDuplicationPage() {
 
   const analyzePropertyImages = (property: any) => {
     const allUrls = getAllImageUrls(property);
-    const uniqueUrls = [...new Set(allUrls)];
+    const uniqueUrls = Array.from(new Set(allUrls));
     
     return {
       thumbnailImage: property.thumbnailImage,
