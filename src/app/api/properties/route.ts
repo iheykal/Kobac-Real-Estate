@@ -395,7 +395,14 @@ export async function POST(request: NextRequest) {
     
     // Prepare images array (no logo added to array - it's a watermark overlay)
     let imagesArray = body.additionalImages && Array.isArray(body.additionalImages) ? body.additionalImages : [];
-    console.log('📸 Images array:', imagesArray);
+    
+    // If no images provided in body, try to get from uploaded images
+    if (imagesArray.length === 0 && body.uploadedImages && Array.isArray(body.uploadedImages)) {
+      imagesArray = body.uploadedImages;
+      console.log('📸 Using uploaded images:', imagesArray);
+    }
+    
+    console.log('📸 Final images array:', imagesArray);
     
     // Prepare agent data for the property
     // Check both top-level avatar and profile.avatar
@@ -462,7 +469,7 @@ export async function POST(request: NextRequest) {
       description: sanitizedData.description,
       features: Array.isArray(sanitizedData.features) ? sanitizedData.features : [],
       amenities: Array.isArray(sanitizedData.amenities) ? sanitizedData.amenities : [],
-      thumbnailImage: sanitizedData.thumbnailImage || '',
+      thumbnailImage: sanitizedData.thumbnailImage || (imagesArray.length > 0 ? imagesArray[0] : ''),
       images: imagesArray,
       agent: agentData,
       deletionStatus: 'active'
