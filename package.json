@@ -10,6 +10,8 @@
     "lint": "next lint",
     "fix-properties": "node scripts/fix-existing-properties.js",
     "force-deploy": "node force-deploy.js",
+    "zero-error-deploy": "node zero-error-deploy.js",
+    "restore-debug": "node restore-debug-pages.js",
     "deploy": "npm run build && git add . && git commit -m 'Deploy' && git push origin main"
   },
   "dependencies": {
