@@ -24,8 +24,8 @@ export default function DebugSuperadminAccess() {
         sessionCookie: sessionCookie || 'Not found',
         sessionAltCookie: sessionAltCookie || 'Not found',
         found: false,
-        parsed: null,
-        error: null
+        parsed: null as any,
+        error: null as string | null
       };
       
       if (sessionCookie) {
