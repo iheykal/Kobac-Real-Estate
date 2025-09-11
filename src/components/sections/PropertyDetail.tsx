@@ -809,12 +809,6 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                               </div>
                             )}
                           </div>
-                          {property.agent?.verified && (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border" style={{backgroundColor: '#E3F2FD', color: '#1877F2', borderColor: '#1877F2'}}>
-                              <Award className="w-3 h-3" />
-                              <span>Verified</span>
-                            </div>
-                          )}
                         </div>
                         
                         <div className="mb-3">

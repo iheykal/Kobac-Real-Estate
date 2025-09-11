@@ -792,12 +792,6 @@ export const SampleHomes: React.FC = () => {
                       </svg>
                     </div>
                   )}
-                  {property.agent?.verified && (
-                      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium border" style={{backgroundColor: '#E3F2FD', color: '#1877F2', borderColor: '#1877F2'}}>
-                      <Award className="w-2.5 h-2.5" />
-                      <span>Verified</span>
-                    </div>
-                  )}
                 </div>
                 <div className="text-xs text-slate-500 truncate">
                   {property.agent?.phone ? formatPhoneNumber(property.agent.phone) : 'Contact Agent'}

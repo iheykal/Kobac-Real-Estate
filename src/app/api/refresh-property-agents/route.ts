@@ -29,8 +29,7 @@ export async function POST(request: NextRequest) {
               name: agentUser.fullName || `${agentUser.firstName || ''} ${agentUser.lastName || ''}`.trim() || 'Agent',
               phone: agentUser.phone || 'N/A',
               image: agentUser.avatar || '/icons/uze.png', // Use current avatar
-              rating: 5.0,
-              verified: agentUser.agentProfile?.verified || false
+              rating: 5.0
             };
             
             await property.save();
