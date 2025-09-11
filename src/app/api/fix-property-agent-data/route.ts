@@ -47,9 +47,12 @@ export async function POST(request: NextRequest) {
       } else if (typeof propertyObj.agentId === 'string' && propertyObj.agentId !== superAdmin._id.toString()) {
         needsFix = true;
         fixReason = 'Incorrect agentId';
-      } else if (typeof propertyObj.agentId === 'object' && propertyObj.agentId && '_id' in propertyObj.agentId && (propertyObj.agentId as any)._id !== superAdmin._id.toString()) {
-        needsFix = true;
-        fixReason = 'Incorrect agentId object';
+      } else if (typeof propertyObj.agentId === 'object' && propertyObj.agentId && '_id' in propertyObj.agentId) {
+        const agentIdObj = propertyObj.agentId as { _id: string };
+        if (agentIdObj._id !== superAdmin._id.toString()) {
+          needsFix = true;
+          fixReason = 'Incorrect agentId object';
+        }
       }
       
       if (needsFix) {
@@ -122,8 +125,9 @@ export async function GET(request: NextRequest) {
       if (typeof propertyObj.agentId === 'string') {
         return propertyObj.agentId === superAdmin._id.toString();
       }
-      if (typeof propertyObj.agentId === 'object') {
-        return propertyObj.agentId._id === superAdmin._id.toString();
+      if (typeof propertyObj.agentId === 'object' && propertyObj.agentId && '_id' in propertyObj.agentId) {
+        const agentIdObj = propertyObj.agentId as { _id: string };
+        return agentIdObj._id === superAdmin._id.toString();
       }
       return false;
     }).length;
