@@ -119,7 +119,7 @@ export async function POST(
       }
     } else {
       // Anonymous user - use session ID
-      if (!property.anonymousViewers?.includes(sessionId)) {
+      if (sessionId && !property.anonymousViewers?.includes(sessionId)) {
         isUniqueView = true;
         updateData.$inc.uniqueViewCount = 1;
         updateData.$addToSet = { anonymousViewers: sessionId };
