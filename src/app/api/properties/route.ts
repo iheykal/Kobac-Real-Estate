@@ -178,9 +178,9 @@ export async function GET(request: NextRequest) {
         } else if (typeof propertyObj.agentId === 'string') {
           // Handle string ID
           originalAgentId = propertyObj.agentId;
-        } else if (propertyObj.agentId && typeof propertyObj.agentId === 'object' && 'toString' in propertyObj.agentId) {
-          // Handle ObjectId directly
-          originalAgentId = propertyObj.agentId.toString();
+        } else {
+          // Handle ObjectId or any other type - convert to string
+          originalAgentId = String(propertyObj.agentId);
         }
       }
       
