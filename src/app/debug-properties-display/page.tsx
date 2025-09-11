@@ -20,8 +20,8 @@ export default function DebugPropertiesDisplay() {
         price: p.price,
         agentId: p.agentId,
         deletionStatus: p.deletionStatus,
-        thumbnailImage: p.thumbnailImage,
-        images: p.images,
+        thumbnailImage: (p as any).thumbnailImage,
+        images: (p as any).images,
         createdAt: p.createdAt
       }))
     })
@@ -82,8 +82,8 @@ export default function DebugPropertiesDisplay() {
                         </div>
                       </div>
                       <div className="mt-2">
-                        <div className="text-xs text-gray-400">Thumbnail: {property.thumbnailImage}</div>
-                        <div className="text-xs text-gray-400">Images: {property.images?.length || 0} images</div>
+                        <div className="text-xs text-gray-400">Thumbnail: {(property as any).thumbnailImage}</div>
+                        <div className="text-xs text-gray-400">Images: {(property as any).images?.length || 0} images</div>
                       </div>
                     </div>
                   ))}
