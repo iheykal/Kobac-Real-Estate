@@ -393,16 +393,32 @@ export async function POST(request: NextRequest) {
     console.log('  getCompanyLogoUrl() result:', companyLogoUrl);
     console.log('ℹ️ Company logo will be applied as watermark overlay on frontend');
     
-    // Prepare images array (no logo added to array - it's a watermark overlay)
-    let imagesArray = body.additionalImages && Array.isArray(body.additionalImages) ? body.additionalImages : [];
+    // Handle thumbnail and gallery images
+    let thumbnailImage = body.thumbnailImage || '';
+    let imagesArray: string[] = [];
     
-    // If no images provided in body, try to get from uploaded images
-    if (imagesArray.length === 0 && body.uploadedImages && Array.isArray(body.uploadedImages)) {
-      imagesArray = body.uploadedImages;
-      console.log('📸 Using uploaded images:', imagesArray);
+    // Get gallery images from additionalImages or uploadedImages
+    if (body.additionalImages && Array.isArray(body.additionalImages)) {
+      imagesArray = [...body.additionalImages];
+    } else if (body.uploadedImages && Array.isArray(body.uploadedImages)) {
+      imagesArray = [...body.uploadedImages];
     }
     
-    console.log('📸 Final images array:', imagesArray);
+    // If thumbnail is provided but not in gallery, add it
+    if (thumbnailImage && !imagesArray.includes(thumbnailImage)) {
+      imagesArray.unshift(thumbnailImage); // Add thumbnail as first image
+    }
+    // If no thumbnail provided but we have gallery images, use first one as thumbnail
+    else if (!thumbnailImage && imagesArray.length > 0) {
+      thumbnailImage = imagesArray[0];
+    }
+    
+    console.log('📸 Image handling:', {
+      thumbnailImage,
+      galleryImages: imagesArray,
+      hasThumbnail: !!thumbnailImage,
+      hasGallery: imagesArray.length > 0
+    });
     
     // Prepare agent data for the property
     // Check both top-level avatar and profile.avatar
@@ -469,7 +485,7 @@ export async function POST(request: NextRequest) {
       description: sanitizedData.description,
       features: Array.isArray(sanitizedData.features) ? sanitizedData.features : [],
       amenities: Array.isArray(sanitizedData.amenities) ? sanitizedData.amenities : [],
-      thumbnailImage: sanitizedData.thumbnailImage || (imagesArray.length > 0 ? imagesArray[0] : ''),
+      thumbnailImage: thumbnailImage, // Use the processed thumbnail image
       images: imagesArray,
       agent: agentData,
       deletionStatus: 'active'
