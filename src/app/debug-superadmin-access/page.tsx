@@ -154,7 +154,7 @@ export default function DebugSuperadminAccess() {
                 <div><span className="font-medium">Is Authenticated:</span> {isAuthenticated ? '✅ Yes' : '❌ No'}</div>
                 <div><span className="font-medium">User ID:</span> {user?.id || 'Not available'}</div>
                 <div><span className="font-medium">User Role:</span> {user?.role || 'Not available'}</div>
-                <div><span className="font-medium">User Name:</span> {user?.fullName || 'Not available'}</div>
+                <div><span className="font-medium">User Name:</span> {user ? `${user.firstName} ${user.lastName}` : 'Not available'}</div>
                 <div><span className="font-medium">Is Superadmin:</span> {user?.role === 'superadmin' ? '✅ Yes' : '❌ No'}</div>
               </div>
             </div>
