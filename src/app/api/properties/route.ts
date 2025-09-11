@@ -10,7 +10,17 @@ type PropertyWithPopulatedAgent = Omit<IProperty, 'agentId'> & {
     _id: Types.ObjectId;
     name: string;
     email: string;
-    // Add other user fields as needed
+    fullName?: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    avatar?: string;
+    profile?: {
+      avatar?: string;
+    };
+    agentProfile?: {
+      verified?: boolean;
+    };
   } | string;
 };
 
@@ -185,17 +195,18 @@ export async function GET(request: NextRequest) {
       }
       
       // ALWAYS use populated agentId data for fresh agent information
-      if (propertyObj.agentId && typeof propertyObj.agentId === 'object') {
+      if (propertyObj.agentId && typeof propertyObj.agentId === 'object' && '_id' in propertyObj.agentId) {
         // Force refresh of agent data from current user profile
         // Check both top-level avatar and profile.avatar
-        const agentAvatar = propertyObj.agentId.avatar || propertyObj.agentId.profile?.avatar;
+        const agentData = propertyObj.agentId as any; // Type assertion for populated agent data
+        const agentAvatar = agentData.avatar || agentData.profile?.avatar;
         
         propertyObj.agent = {
-          name: propertyObj.agentId.fullName || `${propertyObj.agentId.firstName || ''} ${propertyObj.agentId.lastName || ''}`.trim() || 'Agent',
-          phone: propertyObj.agentId.phone || 'N/A',
+          name: agentData.fullName || `${agentData.firstName || ''} ${agentData.lastName || ''}`.trim() || 'Agent',
+          phone: agentData.phone || 'N/A',
           image: agentAvatar || DEFAULT_AVATAR_URL, // This will always be the current avatar
           rating: 5.0,
-          verified: propertyObj.agentId.agentProfile?.verified || false
+          verified: agentData.agentProfile?.verified || false
         };
         
         // Debug logging for agent data
