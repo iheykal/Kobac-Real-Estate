@@ -33,7 +33,10 @@ export async function POST(req: NextRequest) {
     
     const form = await req.formData();
     const files = form.getAll('files') as File[];
-    const listingId = form.get('listingId') as string;
+    let listingId = form.get('listingId') as string;
+    
+    // Generate a unique identifier for this upload session if no listingId is provided
+    const uploadSessionId = listingId || `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
     if (!files.length) {
       return NextResponse.json({ success: false, error: 'No files provided' }, { status: 400 });
@@ -46,6 +49,21 @@ export async function POST(req: NextRequest) {
     const [{ S3Client, PutObjectCommand }] = await Promise.all([
       import('@aws-sdk/client-s3'),
     ]);
+
+    // Check R2 environment variables
+    const missingEnvVars = [];
+    if (!process.env.R2_ENDPOINT) missingEnvVars.push('R2_ENDPOINT');
+    if (!process.env.R2_ACCESS_KEY_ID) missingEnvVars.push('R2_ACCESS_KEY_ID');
+    if (!process.env.R2_SECRET_ACCESS_KEY) missingEnvVars.push('R2_SECRET_ACCESS_KEY');
+    if (!process.env.R2_BUCKET) missingEnvVars.push('R2_BUCKET');
+    
+    if (missingEnvVars.length > 0) {
+      console.error('❌ Missing R2 environment variables:', missingEnvVars);
+      return NextResponse.json({ 
+        success: false, 
+        error: `R2 configuration missing: ${missingEnvVars.join(', ')}. Please configure R2 environment variables in Render dashboard.` 
+      }, { status: 500 });
+    }
 
     const s3 = new S3Client({
       region: 'auto',
@@ -104,11 +122,8 @@ export async function POST(req: NextRequest) {
         };
       }
       
-      // Create organized directory structure: kobac-real-estate/uploads/listings/{listingId}/
-      const baseDir = listingId ? `kobac-real-estate/uploads/listings/${listingId}` : 'kobac-real-estate/uploads';
-      const timestamp = Date.now();
-      const randomId = cryptoRandom(8);
-      const key = `${baseDir}/${timestamp}-${randomId}-${processedFile.filename}`;
+      // Create a unique key for each upload
+      const key = `properties/${uploadSessionId}/${cryptoRandom(8)}-${Date.now()}-${sanitizeName(processedFile.filename)}`;
 
       const cmd = new PutObjectCommand({
         Bucket: bucket,

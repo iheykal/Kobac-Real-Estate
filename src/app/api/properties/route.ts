@@ -398,6 +398,26 @@ export async function POST(request: NextRequest) {
     let imagesArray: string[] = [];
     
     // Get gallery images from additionalImages or uploadedImages
+    // Ensure we have a fresh upload for this property
+    if (body.images && Array.isArray(body.images)) {
+      imagesArray = [...new Set(body.images)]; // Remove duplicates
+      
+      // If we have a listing ID, verify the images belong to this listing
+      if (nextPropertyId) {
+        imagesArray = imagesArray.filter(url => 
+          url.includes(`/properties/${nextPropertyId}/`) || 
+          url.includes(`/properties/temp/`)
+        );
+      }
+    }
+    
+    // If thumbnail is provided but not in gallery, add it
+    if (thumbnailImage && !imagesArray.includes(thumbnailImage)) {
+      imagesArray.unshift(thumbnailImage);
+    } else if (!thumbnailImage && imagesArray.length > 0) {
+      // If no thumbnail but we have gallery images, use first one as thumbnail
+      thumbnailImage = imagesArray[0];
+    }
     if (body.additionalImages && Array.isArray(body.additionalImages)) {
       imagesArray = [...body.additionalImages];
     } else if (body.uploadedImages && Array.isArray(body.uploadedImages)) {
