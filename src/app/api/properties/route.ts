@@ -246,12 +246,10 @@ export async function GET(request: NextRequest) {
           } else {
             // Fallback to embedded data if user not found
             propertyObj.agent = {
-              id: propertyObj.agentId?.toString() || '', // Add agent ID for navigation
               name: propertyObj.agent?.name || 'Agent',
               phone: propertyObj.agent?.phone || 'N/A',
               image: propertyObj.agent?.image || DEFAULT_AVATAR_URL,
-              rating: propertyObj.agent?.rating || 5.0,
-              verified: propertyObj.agent?.verified || false
+              rating: propertyObj.agent?.rating || 5.0
             };
             
             console.log('🔍 Property agent data (fallback):', {
@@ -265,23 +263,19 @@ export async function GET(request: NextRequest) {
           console.error('Error fetching agent user data:', error);
           // Fallback to embedded data
           propertyObj.agent = {
-            id: propertyObj.agentId?.toString() || '', // Add agent ID for navigation
             name: propertyObj.agent?.name || 'Agent',
             phone: propertyObj.agent?.phone || 'N/A',
             image: propertyObj.agent?.image || DEFAULT_AVATAR_URL,
-            rating: propertyObj.agent?.rating || 5.0,
-            verified: propertyObj.agent?.verified || false
+            rating: propertyObj.agent?.rating || 5.0
           };
         }
       } else {
         // Fallback to embedded agent data if no agentId
         propertyObj.agent = {
-          id: propertyObj.agentId?.toString() || '', // Add agent ID for navigation
           name: propertyObj.agent?.name || 'Agent',
           phone: propertyObj.agent?.phone || 'N/A',
           image: propertyObj.agent?.image || DEFAULT_AVATAR_URL,
-          rating: propertyObj.agent?.rating || 5.0,
-          verified: propertyObj.agent?.verified || false
+          rating: propertyObj.agent?.rating || 5.0
         };
         
         console.log('🔍 Property agent data (fallback - no agentId):', {
@@ -295,9 +289,6 @@ export async function GET(request: NextRequest) {
       // Always set agentId if we have agent data, even if originalAgentId was null
       if (originalAgentId) {
         propertyObj.agentId = originalAgentId;
-      } else if (propertyObj.agent?.id) {
-        // If we have agent data but no originalAgentId, use the agent.id
-        propertyObj.agentId = propertyObj.agent.id;
       }
       
       return propertyObj;
