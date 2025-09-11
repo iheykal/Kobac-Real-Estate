@@ -228,12 +228,10 @@ export async function GET(request: NextRequest) {
             const agentAvatar = agentUser.avatar || agentUser.profile?.avatar;
             
             propertyObj.agent = {
-              id: agentUser._id.toString(), // Add agent ID for navigation
               name: agentUser.fullName || `${agentUser.firstName || ''} ${agentUser.lastName || ''}`.trim() || 'Agent',
               phone: agentUser.phone || 'N/A',
               image: agentAvatar || DEFAULT_AVATAR_URL, // Current avatar from user profile
-              rating: 5.0,
-              verified: agentUser.agentProfile?.verified || false
+              rating: 5.0
             };
             
             console.log('🔍 Property agent data (fetched - current):', {
