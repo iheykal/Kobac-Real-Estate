@@ -1,8 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import Property from '@/models/Property';
+import Property, { IProperty } from '@/models/Property';
 import User, { UserRole } from '@/models/User';
-import { SortOrder } from 'mongoose';
+import { SortOrder, Types } from 'mongoose';
+
+// Define types for Property with populated agentId
+type PropertyWithPopulatedAgent = Omit<IProperty, 'agentId'> & {
+  agentId: Types.ObjectId | {
+    _id: Types.ObjectId;
+    name: string;
+    email: string;
+    // Add other user fields as needed
+  } | string;
+};
+
+type PropertyDocument = PropertyWithPopulatedAgent & {
+  toObject(): any;
+};
 import { getNextPropertyId } from '@/lib/propertyIdGenerator';
 import { getCompanyLogoUrl, DEFAULT_AVATAR_URL } from '@/lib/utils';
 import { getSessionFromRequest } from '@/lib/sessionUtils';
@@ -153,15 +167,20 @@ export async function GET(request: NextRequest) {
     const processedProperties = isDashboardRequest 
       ? properties.map(property => property.toObject ? property.toObject() : property)
       : await Promise.all(properties.map(async (property) => {
-          const propertyObj = property.toObject ? property.toObject() : property;
+          const propertyObj = property.toObject ? property.toObject() : property as unknown as PropertyWithPopulatedAgent;
       
       // Store the original agentId as a string for navigation
       let originalAgentId = null;
       if (propertyObj.agentId) {
-        if (typeof propertyObj.agentId === 'object' && propertyObj.agentId._id) {
+        if (typeof propertyObj.agentId === 'object' && '_id' in propertyObj.agentId) {
+          // Handle populated agent object
           originalAgentId = propertyObj.agentId._id.toString();
         } else if (typeof propertyObj.agentId === 'string') {
+          // Handle string ID
           originalAgentId = propertyObj.agentId;
+        } else if (propertyObj.agentId instanceof Types.ObjectId) {
+          // Handle ObjectId directly
+          originalAgentId = propertyObj.agentId.toString();
         }
       }
       
