@@ -205,8 +205,7 @@ export async function GET(request: NextRequest) {
           name: agentData.fullName || `${agentData.firstName || ''} ${agentData.lastName || ''}`.trim() || 'Agent',
           phone: agentData.phone || 'N/A',
           image: agentAvatar || DEFAULT_AVATAR_URL, // This will always be the current avatar
-          rating: 5.0,
-          verified: agentData.agentProfile?.verified || false
+          rating: 5.0
         };
         
         // Debug logging for agent data
