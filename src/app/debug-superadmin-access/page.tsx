@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
 
 export default function DebugSuperadminAccess() {
-  const { user, isAuthenticated, loading } = useUser();
+  const { user, isAuthenticated, isLoading } = useUser();
   const [sessionInfo, setSessionInfo] = useState<any>(null);
   const [apiTest, setApiTest] = useState<any>(null);
   const [testing, setTesting] = useState(false);
@@ -127,7 +127,7 @@ export default function DebugSuperadminAccess() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
