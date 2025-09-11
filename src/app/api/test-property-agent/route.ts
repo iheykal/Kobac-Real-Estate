@@ -43,14 +43,14 @@ export async function GET(request: NextRequest) {
           createdAt: property.createdAt
         },
         populatedAgent: populatedAgent ? {
-          id: populatedAgent._id,
-          firstName: populatedAgent.firstName,
-          lastName: populatedAgent.lastName,
-          fullName: populatedAgent.fullName,
-          email: populatedAgent.email,
-          phone: populatedAgent.phone,
-          avatar: populatedAgent.avatar,
-          licenseNumber: populatedAgent.licenseNumber
+          id: (populatedAgent as any)?._id ?? (populatedAgent as any),
+          firstName: (populatedAgent as any)?.firstName,
+          lastName: (populatedAgent as any)?.lastName,
+          fullName: (populatedAgent as any)?.fullName,
+          email: (populatedAgent as any)?.email,
+          phone: (populatedAgent as any)?.phone,
+          avatar: (populatedAgent as any)?.avatar,
+          licenseNumber: (populatedAgent as any)?.licenseNumber
         } : null,
         embeddedAgent: embeddedAgent ? {
           name: embeddedAgent.name,
