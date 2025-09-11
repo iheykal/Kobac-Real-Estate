@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const properties = await Property.find({
       $or: [
         { thumbnailImage: { $exists: true, $nin: ['', null] } },
-        { images: { $exists: true, $ne: [], $ne: null } }
+        { images: { $exists: true, $nin: [[], null] } }
       ]
     });
 
@@ -69,12 +69,20 @@ export async function POST(request: NextRequest) {
       for (const url of urlsToTest) {
         results.totalUrls++;
         
+        // Declare timeoutId in the outer scope to ensure it's accessible in catch block
+        let timeoutId: NodeJS.Timeout | null = null;
+        
         try {
-          // Test URL accessibility
+          // Test URL accessibility with timeout
+          const controller = new AbortController();
+          timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+          
           const response = await fetch(url, { 
             method: 'HEAD',
-            timeout: 10000 // 10 second timeout
+            signal: controller.signal
           });
+          
+          if (timeoutId) clearTimeout(timeoutId);
           
           const isAccessible = response.ok;
           
@@ -96,6 +104,7 @@ export async function POST(request: NextRequest) {
           console.log(`🔗 URL test: ${url} - ${isAccessible ? '✅' : '❌'} (${response.status})`);
           
         } catch (error) {
+          if (timeoutId) clearTimeout(timeoutId);
           results.inaccessible++;
           results.urlTests.push({
             propertyId: property._id,

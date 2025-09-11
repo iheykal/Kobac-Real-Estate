@@ -26,18 +26,27 @@ export async function GET(request: NextRequest) {
       // Check agentId field
       let agentIdData = null;
       if (propertyObj.agentId) {
-        if (typeof propertyObj.agentId === 'object') {
+        if (typeof propertyObj.agentId === 'object' && propertyObj.agentId !== null) {
+          const agentIdObj = propertyObj.agentId as {
+            _id?: any;
+            fullName?: string;
+            phone?: string;
+            email?: string;
+            avatar?: string;
+            profile?: { avatar?: string };
+          };
+          
           agentIdData = {
             type: 'object',
-            _id: propertyObj.agentId._id,
-            fullName: propertyObj.agentId.fullName,
-            phone: propertyObj.agentId.phone,
-            email: propertyObj.agentId.email,
-            avatar: propertyObj.agentId.avatar || propertyObj.agentId.profile?.avatar
+            _id: agentIdObj._id,
+            fullName: agentIdObj.fullName,
+            phone: agentIdObj.phone,
+            email: agentIdObj.email,
+            avatar: agentIdObj.avatar || agentIdObj.profile?.avatar
           };
         } else {
           agentIdData = {
-            type: 'string',
+            type: typeof propertyObj.agentId,
             value: propertyObj.agentId
           };
         }
@@ -48,11 +57,10 @@ export async function GET(request: NextRequest) {
       if (propertyObj.agent) {
         agentData = {
           type: 'object',
-          id: propertyObj.agent.id,
           name: propertyObj.agent.name,
           phone: propertyObj.agent.phone,
-          email: propertyObj.agent.email,
-          image: propertyObj.agent.image
+          image: propertyObj.agent.image,
+          rating: propertyObj.agent.rating
         };
       }
       

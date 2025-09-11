@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
         alt: altSessionData ? { userId: altSessionData.userId, role: altSessionData.role } : null
       },
       headers: headers,
-      recommendations: []
+      recommendations: [] as string[]
     };
     
     // Add recommendations based on findings

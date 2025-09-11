@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       } else if (typeof propertyObj.agentId === 'string' && propertyObj.agentId !== superAdmin._id.toString()) {
         needsFix = true;
         fixReason = 'Incorrect agentId';
-      } else if (typeof propertyObj.agentId === 'object' && propertyObj.agentId._id !== superAdmin._id.toString()) {
+      } else if (typeof propertyObj.agentId === 'object' && propertyObj.agentId && '_id' in propertyObj.agentId && (propertyObj.agentId as any)._id !== superAdmin._id.toString()) {
         needsFix = true;
         fixReason = 'Incorrect agentId object';
       }
