@@ -133,6 +133,13 @@ export async function POST(
       { new: true }
     );
 
+    if (!updatedProperty) {
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to update property view count'
+      }, { status: 500 });
+    }
+
     // Update agent's total views (even if property gets deleted later, views are preserved)
     if (property.agentId) {
       try {
