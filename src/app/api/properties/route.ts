@@ -213,8 +213,8 @@ export async function GET(request: NextRequest) {
           propertyId: propertyObj.propertyId,
           agentName: propertyObj.agent.name,
           agentAvatar: propertyObj.agent.image,
-          agentIdTopLevelAvatar: propertyObj.agentId.avatar,
-          agentIdProfileAvatar: propertyObj.agentId.profile?.avatar,
+          agentIdTopLevelAvatar: agentData.avatar,
+          agentIdProfileAvatar: agentData.profile?.avatar,
           finalAvatar: agentAvatar,
           isCurrentAvatar: true
         });
