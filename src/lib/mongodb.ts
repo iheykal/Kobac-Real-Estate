@@ -53,7 +53,6 @@ async function connectDB() {
       // Connection monitoring
       monitorCommands: false,
       // Render-specific optimizations
-      maxIdleTimeMS: 300000, // 5 minutes
       serverSelectionRetryDelayMS: 2000, // Retry delay
     };
 
