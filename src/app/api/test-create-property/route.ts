@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Exact main page query test - Found properties:', exactMainPageProperties.length);
     
     // Check if our test property is in the results
-    const testPropertyInResults = exactMainPageProperties.find(p => p._id.toString() === property._id.toString());
+    const testPropertyInResults = exactMainPageProperties.find((p: any) => String((p as any)._id) === String((property as any)._id));
     console.log('🔍 Test property found in main page results:', !!testPropertyInResults);
     
     return NextResponse.json({ 
