@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { canAccessRoute, getDefaultRoute } from './lib/authz/authorize'
+import { Role } from './lib/authz/policy'
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -59,7 +60,7 @@ export function middleware(request: NextRequest) {
     console.log('🔍 Middleware - User role:', role, 'Requested path:', pathname)
     
     // Check if user can access the requested route (normalizeRole is called inside canAccessRoute)
-    const canAccess = canAccessRoute(role, pathname)
+    const canAccess = canAccessRoute(role as Role, pathname)
     console.log('🔍 Middleware - Can access route:', canAccess)
     
     if (!canAccess) {

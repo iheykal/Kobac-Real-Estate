@@ -277,7 +277,7 @@ export default function PropertySearch() {
                     key={selectedImage}
                     src={(() => {
                       const allImages = getAllImageUrls(property);
-                      return allImages[selectedImage] || getPrimaryImageUrl(property);
+                      return allImages[selectedImage] || getPrimaryImageUrl(property) || '/icons/placeholder.jpg';
                     })()}
                     alt={property.title}
                     className="w-full h-full object-cover"

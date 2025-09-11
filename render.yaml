@@ -4,8 +4,6 @@ services:
     env: docker
     plan: starter
     dockerfilePath: ./Dockerfile
-    buildCommand: docker build -t kobac-real-estate .
-    startCommand: docker run -p $PORT:3000 kobac-real-estate
     healthCheckPath: /
     autoDeploy: true
     branch: main

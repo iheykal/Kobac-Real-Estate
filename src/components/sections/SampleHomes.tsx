@@ -653,7 +653,7 @@ export const SampleHomes: React.FC = () => {
         {/* Image Section */}
         <div className="relative h-40 sm:h-48 md:h-60 lg:h-80 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
           <PropertyImageWithWatermarkFixed
-            src={getPropertyImage(property)}
+            src={getPropertyImage(property) || '/icons/placeholder.jpg'}
             alt={property.title}
             className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
             showWatermark={true}
@@ -823,7 +823,7 @@ export const SampleHomes: React.FC = () => {
           {/* Image Section */}
           <div className="relative w-full md:w-1/3 h-64 md:h-auto overflow-hidden">
             <PropertyImageWithWatermarkFixed
-              src={getPropertyImage(property)}
+              src={getPropertyImage(property) || '/icons/placeholder.jpg'}
               alt={property.title}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
               showWatermark={true}

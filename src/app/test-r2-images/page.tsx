@@ -37,8 +37,8 @@ export default function TestR2Images() {
         originalImages: property.images,
         resolvedPrimary: primaryUrl,
         resolvedAll: allUrls,
-        isR2Primary: isR2Url(primaryUrl),
-        isLocalPrimary: isLocalUploadUrl(primaryUrl),
+        isR2Primary: primaryUrl ? isR2Url(primaryUrl) : false,
+        isLocalPrimary: primaryUrl ? isLocalUploadUrl(primaryUrl) : false,
         r2Count: allUrls.filter(isR2Url).length,
         localCount: allUrls.filter(isLocalUploadUrl).length,
         totalImages: allUrls.length

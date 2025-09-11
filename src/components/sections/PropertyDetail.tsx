@@ -157,7 +157,7 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
       imagesLength: property.images?.length,
       allImageUrls: urls,
       allImageUrlsCount: urls.length,
-      thumbnailInImages: property.images?.includes(property.thumbnailImage)
+      thumbnailInImages: property.thumbnailImage ? property.images?.includes(property.thumbnailImage) : false
     });
     return urls;
   }, [property]);
@@ -398,14 +398,7 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                           key="fallback"
                           src={getPrimaryImageUrl(property) || ''}
                           alt={property.title}
-                          className="w-full h-full"
-                          style={{
-                            maxHeight: '80vh',
-                            width: 'auto',
-                            height: 'auto',
-                            maxWidth: '100%',
-                            objectFit: 'contain'
-                          }}
+                          className="w-full h-full max-h-[80vh] object-contain"
                           showWatermark={true}
                           watermarkPosition="center"
                           watermarkSize="large"
@@ -424,20 +417,12 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                           key={`main-${validIndex}`}
                           src={selectedImageUrl}
                           alt={`${property.title} - Image ${validIndex + 1}`}
-                          className="w-full h-full"
-                          style={{
-                            maxHeight: '80vh',
-                            width: 'auto',
-                            height: 'auto',
-                            maxWidth: '100%',
-                            objectFit: 'contain'
-                          }}
+                          className="w-full h-full max-h-[80vh] object-contain"
                           showWatermark={validIndex === 0} // Only show watermark on first image
                           watermarkPosition="center"
                           watermarkSize="large"
                           property={property}
                           index={validIndex}
-                          onLoad={handleImageLoad}
                         />
                       </div>
                     );

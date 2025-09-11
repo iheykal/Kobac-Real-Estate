@@ -26,7 +26,7 @@ export async function initializePropertyCounter(): Promise<void> {
   if (!existingCounter) {
     const Property = (await import('@/models/Property')).default;
     const highestProperty = await Property.findOne().sort({ propertyId: -1 });
-    const nextId = highestProperty ? highestProperty.propertyId + 1 : 1;
+    const nextId = highestProperty?.propertyId ? highestProperty.propertyId + 1 : 1;
     
     await Counter.create({
       name: 'propertyId',

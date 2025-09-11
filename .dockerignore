@@ -10,3 +10,4 @@ README.md
 .next
 .git
 .gitignore
+backup-debug-pages  node_modules  .next  .git 

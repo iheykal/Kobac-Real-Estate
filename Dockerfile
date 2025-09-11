@@ -9,8 +9,8 @@ WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json* ./
-# Use npm install instead of npm ci to handle package-lock.json sync issues
-RUN npm install --only=production
+# Install all dependencies (including devDependencies for build)
+RUN npm install
 
 # Rebuild the source code only when needed
 FROM base AS builder
