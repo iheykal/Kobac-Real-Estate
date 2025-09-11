@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       return {
         propertyId: propertyObj.propertyId,
         title: propertyObj.title,
-        agentId: propertyObj.agentId?._id || propertyObj.agentId,
+        agentId: propertyObj.agentId && typeof propertyObj.agentId === 'object' ? (propertyObj.agentId as any)._id : propertyObj.agentId,
         populatedAgent: propertyObj.agentId && typeof propertyObj.agentId === 'object' ? {
           name: (propertyObj.agentId as any).fullName || `${(propertyObj.agentId as any).firstName || ''} ${(propertyObj.agentId as any).lastName || ''}`.trim(),
           avatar: (propertyObj.agentId as any).avatar,
