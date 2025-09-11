@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Property from '@/models/Property';
 import User, { UserRole } from '@/models/User';
+import { SortOrder } from 'mongoose';
 import { getNextPropertyId } from '@/lib/propertyIdGenerator';
 import { getCompanyLogoUrl, DEFAULT_AVATAR_URL } from '@/lib/utils';
 import { getSessionFromRequest } from '@/lib/sessionUtils';
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
     const isMobileOptimized = request.headers.get('x-mobile-optimized') === 'true';
     
     // Determine sort order: default by engagement, or latest first if requested
-    const sortOption = sort === 'latest' 
+    const sortOption: Record<string, SortOrder> = sort === 'latest' 
       ? { createdAt: -1 }
       : { uniqueViewCount: -1, createdAt: -1 };
 
