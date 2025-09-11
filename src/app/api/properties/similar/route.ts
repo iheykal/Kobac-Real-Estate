@@ -70,26 +70,27 @@ export async function GET(request: NextRequest) {
       // Store the original agentId as a string for navigation
       let originalAgentId = null;
       if (propertyObj.agentId) {
-        if (typeof propertyObj.agentId === 'object' && propertyObj.agentId._id) {
-          originalAgentId = propertyObj.agentId._id.toString();
-        } else if (typeof propertyObj.agentId === 'string') {
+        if (typeof propertyObj.agentId === 'string') {
           originalAgentId = propertyObj.agentId;
+        } else if (typeof propertyObj.agentId === 'object' && propertyObj.agentId && '_id' in propertyObj.agentId) {
+          originalAgentId = (propertyObj.agentId as any)._id.toString();
         }
       }
       
       // Use populated agentId data for fresh agent information
       if (propertyObj.agentId && typeof propertyObj.agentId === 'object') {
-        const agentAvatar = propertyObj.agentId.avatar;
-        const agentProfileAvatar = (propertyObj.agentId as any).profile?.avatar;
+        const agentData = propertyObj.agentId as any;
+        const agentAvatar = agentData.avatar;
+        const agentProfileAvatar = agentData.profile?.avatar;
         
         return {
           ...propertyObj,
           agentId: originalAgentId,
           agent: {
-            name: propertyObj.agentId.name || 'Unknown Agent',
-            phone: propertyObj.agentId.phone || 'N/A',
+            name: agentData.name || 'Unknown Agent',
+            phone: agentData.phone || 'N/A',
             image: agentAvatar || agentProfileAvatar || '/icons/profile.gif',
-            rating: propertyObj.agentId.rating || 0
+            rating: agentData.rating || 0
           }
         };
       }

@@ -250,7 +250,7 @@ export default function PendingDeletionsPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Unique Agents</p>
                 <p className="text-3xl font-bold text-green-600 mt-2">
-                  {new Set(pendingDeletions.map(p => p.agentId._id)).size}
+                  {new Set(pendingDeletions.map(p => (p.agentId as any)._id)).size}
                 </p>
               </div>
               <div className="p-3 rounded-xl bg-green-100">

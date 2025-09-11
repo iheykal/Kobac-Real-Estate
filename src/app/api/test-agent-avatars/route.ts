@@ -54,9 +54,9 @@ export async function GET(request: NextRequest) {
         title: propertyObj.title,
         agentId: propertyObj.agentId?._id || propertyObj.agentId,
         populatedAgent: propertyObj.agentId && typeof propertyObj.agentId === 'object' ? {
-          name: propertyObj.agentId.fullName || `${propertyObj.agentId.firstName || ''} ${propertyObj.agentId.lastName || ''}`.trim(),
-          avatar: propertyObj.agentId.avatar,
-          hasAvatar: !!propertyObj.agentId.avatar
+          name: (propertyObj.agentId as any).fullName || `${(propertyObj.agentId as any).firstName || ''} ${(propertyObj.agentId as any).lastName || ''}`.trim(),
+          avatar: (propertyObj.agentId as any).avatar,
+          hasAvatar: !!(propertyObj.agentId as any).avatar
         } : null,
         embeddedAgent: propertyObj.agent ? {
           name: propertyObj.agent.name,

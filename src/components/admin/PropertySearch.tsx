@@ -83,7 +83,7 @@ export default function PropertySearch() {
   // Function to get agent's first name
   const getAgentFirstName = () => {
     if (!property?.agentId?.firstName) return 'Agent'
-    return property.agentId.firstName
+    return (property.agentId as any).firstName
   }
 
   const formatPrice = (price: number, listingType?: string) => {
@@ -503,12 +503,12 @@ export default function PropertySearch() {
                         {property.agentId?.email && (
                           <div className="flex items-center space-x-2 text-sm text-slate-600 mt-2">
                             <Mail className="w-4 h-4" />
-                            <span>{property.agentId.email}</span>
+                            <span>{(property.agentId as any).email}</span>
                           </div>
                         )}
                         {property.agentId?.licenseNumber && (
                           <div className="flex items-center space-x-2 text-sm text-slate-600">
-                            <span className="text-xs bg-gray-100 px-2 py-1 rounded">License: {property.agentId.licenseNumber}</span>
+                            <span className="text-xs bg-gray-100 px-2 py-1 rounded">License: {(property.agentId as any).licenseNumber}</span>
                           </div>
                         )}
                       </div>

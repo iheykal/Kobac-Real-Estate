@@ -61,7 +61,7 @@ function resolveAgentId(property: any): string | number | undefined {
   
   // If agentId is an object (populated reference), extract the ID
   if (property.agentId && typeof property.agentId === 'object' && property.agentId !== null) {
-    const objectId = property.agentId._id || property.agentId.id;
+    const objectId = (property.agentId as any)._id || (property.agentId as any).id;
     if (objectId) {
       console.log('✅ Found agent ID from populated object:', objectId);
       return String(objectId);
@@ -77,12 +77,12 @@ function resolveAgentId(property: any): string | number | undefined {
   
   // If agent is an object with nested ID fields
   if (property.agent && typeof property.agent === 'object') {
-    // Check for nested ID fields
+    // Check for nested ID fields (only if they exist)
     const nestedIds = [
-      property.agent._id,
-      property.agent.id,
-      property.agent.agentId,
-      property.agent.userId
+      (property.agent as any)._id,
+      (property.agent as any).id,
+      (property.agent as any).agentId,
+      (property.agent as any).userId
     ];
     
     for (const id of nestedIds) {
@@ -170,7 +170,7 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
   // Function to get agent's first name
   const getAgentFirstName = () => {
     if (!property.agent?.name) return 'Agent'
-    return property.agent.name.split(' ')[0]
+    return (property.agent as any).name.split(' ')[0]
   }
 
   // Increment view count when property detail is opened
@@ -240,7 +240,7 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
       // Try to find agent by name as fallback
       if (property.agent?.name) {
         try {
-          const response = await fetch(`/api/agents/by-name?name=${encodeURIComponent(property.agent.name)}`);
+          const response = await fetch(`/api/agents/by-name?name=${encodeURIComponent((property.agent as any).name)}`);
           if (response.ok) {
             const result = await response.json();
             if (result.success && result.data?.id) {
@@ -257,9 +257,9 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
       
       // If we have agent data but no ID, create a fallback agent page
       if (property.agent?.name) {
-        console.log('🔍 Creating fallback agent page for:', property.agent.name);
+        console.log('🔍 Creating fallback agent page for:', (property.agent as any).name);
         // Create a fallback agent ID based on the name
-        const fallbackAgentId = `fallback-${property.agent.name.toLowerCase().replace(/\s+/g, '-')}`;
+        const fallbackAgentId = `fallback-${(property.agent as any).name.toLowerCase().replace(/\s+/g, '-')}`;
         router.push(`/agent/${fallbackAgentId}`);
         onClose();
         return;
