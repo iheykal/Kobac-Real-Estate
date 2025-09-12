@@ -8,6 +8,7 @@ interface PropertyImageWithWatermarkProps {
   src?: string // Made optional to support property-based image resolution
   alt: string
   className?: string
+  style?: React.CSSProperties
   showWatermark?: boolean
   watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center'
   watermarkSize?: 'small' | 'medium' | 'large'
@@ -24,6 +25,7 @@ export const PropertyImageWithWatermarkFixed: React.FC<PropertyImageWithWatermar
   src,
   alt,
   className = '',
+  style,
   showWatermark = true,
   watermarkPosition = 'center',
   watermarkSize = 'medium',
@@ -54,6 +56,7 @@ export const PropertyImageWithWatermarkFixed: React.FC<PropertyImageWithWatermar
           property={property}
           alt={alt}
           className="w-full h-full"
+          style={style}
           loading="lazy"
           index={index} // Pass the index to PropertyImage
           onError={(error) => {

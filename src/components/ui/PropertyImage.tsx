@@ -12,6 +12,7 @@ interface PropertyImageProps {
   };
   alt?: string;
   className?: string;
+  style?: React.CSSProperties;
   loading?: 'lazy' | 'eager';
   sizes?: string;
   priority?: boolean;
@@ -28,6 +29,7 @@ export default function PropertyImage({
   property,
   alt,
   className = '',
+  style,
   loading = 'lazy',
   sizes,
   priority = false,
@@ -70,6 +72,7 @@ export default function PropertyImage({
             alt={alt || property.title || 'Property image'}
             loading={loading}
             sizes={sizes}
+            style={style}
             onError={() => {
               setFallbackError(true);
               setIsLoading(false);
@@ -133,6 +136,7 @@ export default function PropertyImage({
         alt={alt || property.title || 'Property image'}
         loading={loading}
         sizes={sizes}
+        style={style}
         onError={handleImageError}
         onLoad={handleImageLoad}
         className={`w-full h-full object-cover object-center transition-opacity duration-300 ${
