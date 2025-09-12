@@ -108,6 +108,7 @@ export const PropertyRecommendations: React.FC<PropertyRecommendationsProps> = (
 
         const data = await response.json()
         console.log('✅ PropertyRecommendations: Received data:', data)
+        console.log('🔍 PropertyRecommendations: Sample property data:', data.properties?.[0])
         setRecommendations(data.properties || [])
       } catch (err) {
         console.error('❌ PropertyRecommendations: Error fetching recommendations:', err)
@@ -124,17 +125,16 @@ export const PropertyRecommendations: React.FC<PropertyRecommendationsProps> = (
   const getPropertyImage = (property: RecommendedProperty) => {
     const imageUrl = getPrimaryImageUrl(property)
     
-    // Debug logging for broken thumbnails
-    if (!imageUrl) {
-      console.warn('🔍 PropertyRecommendations: No image URL for property:', {
-        propertyId: property._id,
-        title: property.title,
-        thumbnailImage: property.thumbnailImage,
-        images: property.images,
-        hasThumbnail: !!property.thumbnailImage,
-        hasImages: !!(property.images && property.images.length > 0)
-      })
-    }
+    // Debug logging for all properties
+    console.log('🔍 PropertyRecommendations: Image resolution for property:', {
+      propertyId: property._id,
+      title: property.title,
+      thumbnailImage: property.thumbnailImage,
+      images: property.images,
+      hasThumbnail: !!property.thumbnailImage,
+      hasImages: !!(property.images && property.images.length > 0),
+      resolvedImageUrl: imageUrl
+    })
     
     return imageUrl
   }
@@ -328,6 +328,13 @@ export const PropertyRecommendations: React.FC<PropertyRecommendationsProps> = (
                         <div className="text-xs text-slate-500">
                           {property.agent?.phone ? formatPhoneNumber(property.agent.phone) : 'Contact Agent'}
                         </div>
+                        {/* Debug info */}
+                        {console.log('🔍 PropertyRecommendations: Agent data for property:', {
+                          propertyId: property._id,
+                          title: property.title,
+                          agent: property.agent,
+                          agentId: property.agentId
+                        })}
                       </div>
                     </div>
                   </div>
