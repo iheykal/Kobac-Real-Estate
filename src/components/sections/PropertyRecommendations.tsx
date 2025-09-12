@@ -182,7 +182,16 @@ export const PropertyRecommendations: React.FC<PropertyRecommendationsProps> = (
 
         {/* Recommendations Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {recommendations.map((property, index) => (
+          {recommendations.map((property, index) => {
+            // Debug agent data
+            console.log('🔍 PropertyRecommendations: Agent data for property:', {
+              propertyId: property._id,
+              title: property.title,
+              agent: property.agent,
+              agentId: property.agentId
+            });
+            
+            return (
             <motion.div
               key={getPropertyKey(property, index)}
               initial={{ opacity: 0, y: 50 }}
@@ -328,13 +337,6 @@ export const PropertyRecommendations: React.FC<PropertyRecommendationsProps> = (
                         <div className="text-xs text-slate-500">
                           {property.agent?.phone ? formatPhoneNumber(property.agent.phone) : 'Contact Agent'}
                         </div>
-                        {/* Debug info */}
-                        {console.log('🔍 PropertyRecommendations: Agent data for property:', {
-                          propertyId: property._id,
-                          title: property.title,
-                          agent: property.agent,
-                          agentId: property.agentId
-                        })}
                       </div>
                     </div>
                   </div>
@@ -351,7 +353,8 @@ export const PropertyRecommendations: React.FC<PropertyRecommendationsProps> = (
                 </div>
               </div>
             </motion.div>
-          ))}
+            );
+          })}
         </div>
 
         {/* View All Button */}
