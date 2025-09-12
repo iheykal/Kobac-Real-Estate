@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
       propertiesWithImages: debugData.filter(p => p.imageData.hasValidImage).length,
       propertiesWithoutImages: debugData.filter(p => !p.imageData.hasValidImage).length,
       propertiesWithIssues: debugData.filter(p => p.issues.length > 0).length,
-      commonIssues: {}
+      commonIssues: {} as Record<string, number>
     };
 
     // Count common issues
