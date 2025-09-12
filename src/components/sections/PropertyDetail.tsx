@@ -346,227 +346,15 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                   className="w-full"
                   showThumbnails={true}
                   showNavigation={true}
-                  showWatermark={true}
-                  watermarkPosition="center"
-                  watermarkSize="large"
+                          showWatermark={true}
+                          watermarkPosition="center"
+                          watermarkSize="large"
                   thumbnailSize="medium"
                   thumbnailLayout="flexible"
                   enableTouchGestures={true}
                   enableKeyboardNavigation={true}
                   maintainAspectRatio={true}
                 />
-              </div>
-              {/* Right Side - Property Details */}
-                    if (allImages.length === 0) {
-                      return (
-                        <PropertyImageWithWatermarkFixed
-                          key="fallback"
-                          src={getPrimaryImageUrl(property) || ''}
-                          alt={property.title}
-                          className="w-full h-full object-cover"
-                          showWatermark={true}
-                          watermarkPosition="center"
-                          watermarkSize="large"
-                          property={property}
-                        />
-                      );
-                    }
-                    
-                    // Make sure selectedImage is within valid range
-                    const validIndex = Math.min(selectedImage, allImages.length - 1);
-                    const selectedImageUrl = allImages[validIndex];
-                    
-                    return (
-                      <div className="w-full h-full flex items-center justify-center p-2">
-                        <PropertyImageWithWatermarkFixed
-                          key={`main-${validIndex}`}
-                          src={selectedImageUrl}
-                          alt={`${property.title} - Image ${validIndex + 1}`}
-                          className="max-w-full max-h-full"
-                          style={{
-                            width: 'auto',
-                            height: 'auto',
-                            maxWidth: '100%',
-                            maxHeight: '100%',
-                            objectFit: 'contain'
-                          }}
-                          showWatermark={validIndex === 0} // Only show watermark on first image
-                          watermarkPosition="center"
-                          watermarkSize="large"
-                          property={property}
-                          index={validIndex}
-                        />
-                      </div>
-                    );
-                  })()}
-                 
-                  {/* Image Navigation Arrows - Only show if more than 1 image */}
-                  {(() => {
-                    // Get all valid images using the resolver, filtering out Uze logos
-                    const validImages = getAllImageUrls(property).filter(img => 
-                      !img.includes('uze.png') && !img.includes('/icons/')
-                    );
-                    
-                    const totalValidImages = validImages.length;
-                    
-                    // Only show arrows if there are multiple images
-                    if (totalValidImages <= 1) {
-                      return null;
-                    }
-                    
-                    // Get the current image index, ensuring it's within bounds
-                    const currentIndex = Math.min(selectedImage, totalValidImages - 1);
-                    
-                    return (
-                      <>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const prevIndex = currentIndex > 0 ? currentIndex - 1 : totalValidImages - 1;
-                            handleImageChange(prevIndex);
-                          }}
-                          className="absolute left-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-white/50 text-gray-800 hover:bg-white/80 hover:scale-110 transition-all shadow-lg z-10"
-                          aria-label="Previous image"
-                        >
-                          <ArrowLeft className="w-6 h-6" />
-                        </button>
-                        
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const nextIndex = currentIndex < totalValidImages - 1 ? currentIndex + 1 : 0;
-                            handleImageChange(nextIndex);
-                          }}
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-white/50 text-gray-800 hover:bg-white/80 hover:scale-110 transition-all shadow-lg z-10"
-                          aria-label="Next image"
-                        >
-                          <ArrowRight className="w-6 h-6" />
-                        </button>
-                        
-                        {/* Image counter */}
-                        <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
-                          {currentIndex + 1} / {totalValidImages}
-                        </div>
-                      </>
-                    );
-                  })()}
-                  
-                  {/* Image Navigation Dots - Only show if more than 1 image */}
-                  {(() => {
-                    // Calculate total valid images using resolver
-                    const validImages = getAllImageUrls(property).filter(img => 
-                      !img.includes('uze.png') && !img.includes('/icons/')
-                    );
-                    
-                    const totalValidImages = validImages.length;
-                    
-                    // Only show dots if there are multiple images
-                    if (totalValidImages <= 1) {
-                      return null;
-                    }
-                    
-                    return (
-                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                        <div className="flex space-x-2">
-                          {Array.from({ length: totalValidImages }, (_, index) => (
-                            <button
-                              key={index}
-                              onClick={() => handleImageChange(index)}
-                              className={`w-3 h-3 rounded-full transition-all ${
-                                index === selectedImage 
-                                  ? 'bg-blue-500 scale-125' 
-                                  : 'bg-white/70 hover:bg-blue-300'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* Thumbnail Images - AGGRESSIVE DUPLICATE REMOVAL */}
-                {(() => {
-                  // Get all images and remove ALL duplicates (including thumbnail duplicates)
-                  const allImages = property.images || [];
-                  const thumbnailUrl = property.thumbnailImage;
-                  
-                  // Remove duplicates and filter out thumbnail
-                  const uniqueImages = [];
-                  const seenUrls = new Set();
-                  
-                  for (const img of allImages) {
-                    // Skip if it's the thumbnail or if we've seen this URL before
-                    if (img === thumbnailUrl || seenUrls.has(img)) {
-                      console.log('🔄 Filtering out duplicate:', img);
-                      continue;
-                    }
-                    
-                    // Skip system images
-                    if (img.includes('uze.png') || img.includes('/icons/')) {
-                      continue;
-                    }
-                    
-                    uniqueImages.push(img);
-                    seenUrls.add(img);
-                  }
-                  
-                  console.log('🖼️ AGGRESSIVE DUPLICATE REMOVAL:');
-                  console.log('  Property Title:', property.title);
-                  console.log('  Thumbnail Image:', thumbnailUrl);
-                  console.log('  Raw Images Count:', allImages.length);
-                  console.log('  Raw Images:', allImages);
-                  console.log('  Unique Images Count:', uniqueImages.length);
-                  console.log('  Unique Images:', uniqueImages);
-                  console.log('  Duplicates Removed:', allImages.length - uniqueImages.length);
-                  
-                  // Only show the gallery if there are unique additional images
-                  if (uniqueImages.length === 0) {
-                    console.log('🖼️ No unique additional images to show');
-                    return null;
-                  }
-                  
-                  return (
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      {uniqueImages.map((image, index) => {
-                        const isActive = index + 1 === selectedImage;
-                        return (
-                          <button
-                            key={index}
-                            onClick={() => handleImageChange(index + 1)} // +1 because index 0 is the main thumbnail
-                            className={`flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
-                              isActive 
-                                ? 'border-blue-500 ring-2 ring-blue-300 scale-105 shadow-md' 
-                                : 'border-transparent hover:border-gray-300 hover:scale-105'
-                            }`}
-                            style={{
-                              width: '64px',
-                              height: '64px',
-                              opacity: isActive ? 1 : 0.9,
-                            }}
-                          >
-                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                              <PropertyImageWithWatermarkFixed
-                                property={property}
-                                index={index + 1}
-                                className="max-w-full max-h-full"
-                                style={{
-                                  width: 'auto',
-                                  height: 'auto',
-                                  maxWidth: '100%',
-                                  maxHeight: '100%',
-                                  objectFit: 'contain'
-                                }}
-                                alt={`${property.title} - Thumbnail ${index + 1}`}
-                                showWatermark={false}
-                              />
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
               </div>
               {/* Right Side - Property Details */}
               <div className="space-y-6">
@@ -581,405 +369,81 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 text-slate-600">
-                    <img 
-                      src="/icons/location.gif" 
-                      alt="Location" 
-                      className="w-5 h-5 object-contain"
-                    />
+                    <MapPin className="w-5 h-5" />
                     <span>{property.location}</span>
                   </div>
                   {property.district && (
-                    <div className="flex items-center space-x-2 text-slate-500">
-                      <MapPin className="w-5 h-5 text-green-500" />
-                      <span className="font-medium">{property.district}</span>
-                    </div>
-                  )}
-                  <div 
-                    className="text-4xl font-bold text-green-600"
-                    dangerouslySetInnerHTML={{ __html: formatPrice(property.price) }}
-                  />
-                  {property.createdAt && (
                     <div className="flex items-center space-x-2 text-slate-600">
-                      <Calendar className="w-5 h-5" />
-                      <span>Lasoo dhigay {formatListingDate(property.createdAt)}</span>
+                      <MapPin className="w-5 h-5" />
+                      <span>{property.district}</span>
                     </div>
                   )}
-                </div>
-
-                {/* Key Stats */}
-                <div className={`grid gap-4 ${property.status === 'For Sale' ? 'grid-cols-2' : 'grid-cols-2'}`}>
-                  {/* Document Type - Show for all properties */}
-                  {property.documentType && (
-                    <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
-                      <div className="w-16 h-16 flex items-center justify-center mx-auto mb-2">
-                        <Award className="w-8 h-8 text-purple-600" />
-                      </div>
-                      <div className="text-lg font-bold text-slate-900">{property.documentType}</div>
-                      <div className="text-sm text-slate-600">Sharciga</div>
-                    </div>
-                  )}
-                  
-                  {/* Measurement - Only show for properties for sale */}
-                  {property.status === 'For Sale' && (
-                    <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-                      <div className="w-16 h-16 flex items-center justify-center mx-auto mb-2">
-                        <img 
-                          src="/icons/ruler.gif" 
-                          alt="Measurement" 
-                          className="w-10 h-10 object-contain mix-blend-multiply"
-                          style={{ filter: 'contrast(1.2) brightness(1.1)' }}
-                        />
-                      </div>
-                      <div className="text-xl font-bold text-slate-900">{property.measurement || 'N/A'}</div>
-                      <div className="text-sm text-slate-600">Cabbirka</div>
-                    </div>
-                  )}
-                  
-                  {/* Beds and Baths - Only show for rent properties with valid values */}
-                  {property.status === 'For Rent' && property.beds > 0 && property.baths > 0 && (
-                    <>
-                      <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-                        <div className="w-16 h-16 flex items-center justify-center mx-auto mb-2">
-                          <img 
-                            src="/icons/bed.png" 
-                            alt="Bed" 
-                            className="w-10 h-10 object-contain"
-                          />
-                        </div>
-                        <div className="text-xl font-bold text-slate-900">{property.beds}</div>
-                        <div className="text-sm text-slate-600">Qol</div>
-                      </div>
-                      <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-                        <div className="w-20 h-20 flex items-center justify-center mx-auto mb-2">
-                          <video 
-                            src="/icons/shower1.mp4" 
-                            autoPlay 
-                            loop 
-                            muted 
-                            playsInline
-                            className="w-12 h-12 object-contain mix-blend-multiply"
-                            style={{ filter: 'contrast(1.2) brightness(1.1)' }}
-                          />
-                        </div>
-                        <div className="text-xl font-bold text-slate-900">{property.baths}</div>
-                        <div className="text-sm text-slate-600">Suuli</div>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Description */}
-                <div className="space-y-3">
-                  <h3 className="text-xl font-serif font-bold text-slate-900">Faah-Faahin</h3>
-                  <p className="text-slate-700 leading-relaxed">{property.description}</p>
-                </div>
-
-                {/* Agent Card */}
-                <motion.div 
-                  className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 rounded-2xl border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
-                  animate={{
-                    boxShadow: [
-                      "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                      "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-                      "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
-                    ]
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    repeatDelay: 6
-                  }}
-                >
-                  {/* Header with gradient background */}
-                  <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <motion.div 
-                          className="flex items-center justify-center"
-                          animate={{
-                            rotate: [0, -5, 5, -5, 0],
-                            scale: [1, 1.05, 1, 1.05, 1],
-                          }}
-                          transition={{
-                            duration: 3,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                            repeatDelay: 4
-                          }}
-                        >
-                          <img 
-                            src="/icons/contactgif.gif" 
-                            alt="Contact" 
-                            className="w-7 h-7 object-contain"
-                          />
-                        </motion.div>
-                        <div>
-                          <h3 className="text-white font-semibold text-lg">
-                            LAXIRIIR WAKIILKEENA{' '}
-                            <span
-                              className="transition-colors underline decoration-white/30 hover:decoration-white/60 bg-gradient-to-r from-yellow-300 via-orange-300 to-pink-300 bg-clip-text text-transparent font-bold cursor-pointer hover:text-blue-100"
-                              onClick={viewAgentSource}
-                              title="View agent profile"
-                            >
-                              {capitalizeName(property.agent?.name || 'Agent')}
-                            </span>
-                          </h3>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">👤</span>
-                      </div>
-                    </div>
+                  <div className="text-4xl font-bold text-blue-600">
+                    {formatPrice(property.price)}
                   </div>
-                  
-                  {/* Agent Content */}
-                  <div className="p-4 sm:p-6">
-                    <div className="flex items-center space-x-4 mb-6">
-                      <div 
-                        className="relative group cursor-pointer"
-                        onClick={viewAgentSource}
-                        title="View agent profile"
-                      >
-                        <div className="relative">
-                          {/* Decorative outer circle */}
-                          <motion.div 
-                            className="absolute -inset-2 rounded-full bg-white opacity-70 blur-sm"
-                            animate={{
-                              rotate: 360,
-                              scale: [1, 1.1, 1],
-                            }}
-                            transition={{
-                              rotate: {
-                                duration: 8,
-                                repeat: Infinity,
-                                ease: "linear"
-                              },
-                              scale: {
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                              }
-                            }}
-                          ></motion.div>
-                          
-                          {/* Main profile circle */}
-                          <div className="relative w-20 h-20 rounded-full p-1 transition-all duration-300 bg-white">
-                            <img
-                              src={property.agent?.image || DEFAULT_AVATAR_URL}
-                              alt={capitalizeName(property.agent?.name || 'Agent')}
-                              className={`w-full h-full border-2 border-white shadow-md ${(property.agent?.name?.toLowerCase().includes('kobac real estate') || property.agent?.name?.toLowerCase().includes('kobac real')) ? 'rounded-full object-contain' : 'rounded-full object-cover'}`}
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = DEFAULT_AVATAR_URL;
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <div className="absolute -top-1 -right-1 bg-white text-blue-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg">
-                          <ExternalLink className="w-3 h-3" />
-                        </div>
+                </div>
+
+                {/* Property Features */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Bed className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm font-medium">{property.beds} Bedrooms</span>
                       </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2 flex-nowrap">
-                          <div className="flex items-center gap-1 flex-nowrap min-w-0">
-                            <h3 
-                              className="text-xl font-bold text-slate-800 transition-colors cursor-pointer hover:text-blue-600 whitespace-nowrap"
+                  <div className="flex items-center space-x-2">
+                    <Bath className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm font-medium">{property.baths} Bathrooms</span>
+                    </div>
+                  <div className="flex items-center space-x-2">
+                    <Ruler className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm font-medium">{property.measurement || 'N/A'} sq ft</span>
+                      </div>
+                  <div className="flex items-center space-x-2">
+                    <Home className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm font-medium">{property.propertyType}</span>
+                      </div>
+                </div>
+
+                {/* Property Description */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold text-slate-900">Description</h3>
+                  <p className="text-slate-600 leading-relaxed">
+                    {property.description || 'No description available for this property.'}
+                  </p>
+                </div>
+
+                {/* Agent Information */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold text-slate-900">Agent Information</h3>
+                  <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                    <img
+                      src={property.agent?.image || DEFAULT_AVATAR_URL}
+                      alt={property.agent?.name || 'Agent'}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-slate-900">
+                        {property.agent?.name || 'Agent'}
+                      </h4>
+                      <p className="text-sm text-slate-600">
+                        {property.agent?.email || 'No email available'}
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        {property.agent?.phone ? formatPhoneNumber(property.agent.phone) : 'No phone available'}
+                      </p>
+                    </div>
+                    <Button
                               onClick={viewAgentSource}
-                              title="View agent profile"
-                            >
-                              {capitalizeName(property.agent?.name || 'Agent')}
-                            </h3>
-                            {(property.agent?.name?.toLowerCase().includes('kobac real estate') || 
-                              property.agent?.name?.toLowerCase().includes('kobac real')) && (
-                              <div className="flex items-center justify-center w-4 h-4 rounded-full shadow-lg border flex-shrink-0" style={{backgroundColor: '#1877F2', borderColor: '#1877F2'}}>
-                                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      View Agent
+                    </Button>
                               </div>
-                            )}
                           </div>
                         </div>
-                        
-                        <div className="mb-3">
-                          <span className="text-sm text-slate-500 font-medium">
-                            Mogadishu - Somalia
-                          </span>
                         </div>
-
-                      </div>
-                    </div>
-                    
-                    {/* Contact Buttons */}
-                    <div className="space-y-3">
-                      <button 
-                        className="w-full bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center space-x-2 group"
-                      >
-                        <motion.div
-                          animate={{
-                            rotate: [0, -3, 3, -3, 0],
-                            scale: [1, 1.08, 1, 1.08, 1],
-                            filter: [
-                              "drop-shadow(0 0 0 rgba(59, 130, 246, 0))",
-                              "drop-shadow(0 0 4px rgba(59, 130, 246, 0.3))",
-                              "drop-shadow(0 0 0 rgba(59, 130, 246, 0))"
-                            ]
-                          }}
-                          transition={{
-                            duration: 2.5,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                            repeatDelay: 3.5
-                          }}
-                          className="flex items-center justify-center bg-transparent"
-                          style={{ backgroundColor: 'transparent' }}
-                        >
-                          <img 
-                            src="/icons/contactgif.gif" 
-                            alt="Contact" 
-                            className="w-8 h-8 object-contain group-hover:scale-110 transition-transform"
-                          />
-                        </motion.div>
-                        <span>{property.agent?.phone ? formatPhoneNumber(property.agent.phone) : 'Contact Agent'}</span>
-                      </button>
-                      
-                      <button 
-                        className={`w-full border-2 py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 group ${
-                          loadingAgentId 
-                            ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed opacity-50' 
-                            : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 cursor-pointer'
-                        }`}
-                        onClick={viewAgentSource}
-                        disabled={!!loadingAgentId}
-                        title="View agent source information"
-                      >
-                        <img 
-                          src="/icons/profile.gif" 
-                          alt="Profile" 
-                          className="w-9 h-9 object-contain group-hover:scale-110 transition-transform"
-                        />
-                        <span>{loadingAgentId ? 'Loading...' : `View Source - ${getAgentFirstName()}`}</span>
-                      </button>
-                    </div>
-                    
-                    {/* Additional Info */}
-                    <div className="mt-4 pt-4 border-t border-green-100">
-                      <div className="flex items-center justify-center space-x-4 text-xs text-slate-500">
-                        <div className="flex items-center space-x-1">
-                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                          <span>Available 24/7</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                          <span>Quick Response</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Features and Amenities Section */}
-        {(property.features?.length > 0 || property.amenities?.length > 0) && (
-          <div className="px-4 sm:px-6 lg:px-8 py-8">
-            <div className="max-w-4xl mx-auto">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="bg-white rounded-2xl shadow-lg p-6 sm:p-8"
-              >
-                {/* Features Section */}
-                {property.features?.length > 0 && (
-                  <div className="mb-8">
-                    <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center">
-                      <Home className="w-5 h-5 mr-2 text-blue-600" />
-                      Property Features
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                      {property.features.map((feature, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: index * 0.1, duration: 0.3 }}
-                          className="flex flex-col items-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
-                        >
-                          <FeatureIcon 
-                            featureName={feature} 
-                            size="md" 
-                            showLabel={true}
-                          />
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Amenities Section */}
-                {property.amenities?.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center">
-                      <Award className="w-5 h-5 mr-2 text-green-600" />
-                      Amenities
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                      {property.amenities.map((amenity, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: (property.features?.length || 0) * 0.1 + index * 0.1, duration: 0.3 }}
-                          className="flex flex-col items-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
-                        >
-                          <FeatureIcon 
-                            featureName={amenity} 
-                            size="md" 
-                            showLabel={true}
-                          />
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            </div>
-          </div>
-        )}
-
-        {/* Property Recommendations */}
-        {property.district && (
-          <>
-            {console.log('🔍 PropertyDetail: Rendering recommendations for district:', property.district)}
-            <PropertyRecommendations 
-              currentProperty={{
-                _id: property._id,
-                propertyId: property.propertyId,
-                district: property.district
-              }}
-              onPropertyClick={(recommendedProperty) => {
-                // Close current detail and open new one
-                onClose()
-                // Small delay to allow modal to close before opening new one
-                setTimeout(() => {
-                  // Trigger the property click event for the recommended property
-                  // This will be handled by the parent component
-                  if (typeof window !== 'undefined') {
-                    const event = new CustomEvent('propertyClick', { 
-                      detail: recommendedProperty 
-                    })
-                    window.dispatchEvent(event)
-                  }
-                }, 300)
-              }}
-            />
-          </>
-        )}
-      </div>
-    </div>
   )
 }
