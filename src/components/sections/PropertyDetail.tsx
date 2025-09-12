@@ -657,7 +657,7 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                           if (property.agent?.phone) {
                             // Clean the phone number for tel: link and format with 061
                             const cleanPhone = property.agent.phone.replace(/\D/g, '');
-                            const formattedPhone = cleanPhone.startsWith('2526') ? `061${cleanPhone.substring(4)}` : `061${cleanPhone}`;
+                            const formattedPhone = cleanPhone.startsWith('2526') ? `061${cleanPhone.substring(5)}` : `061${cleanPhone}`;
                             const phoneLink = `tel:${formattedPhone}`;
                             window.location.href = phoneLink;
                           }
