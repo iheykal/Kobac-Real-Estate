@@ -2,6 +2,13 @@
 
 import { useEffect } from 'react'
 
+// Declare gtag function for TypeScript
+declare global {
+  interface Window {
+    gtag: (command: string, targetId: string, config?: any) => void
+  }
+}
+
 export default function TestGAPage() {
   useEffect(() => {
     // Test if Google Analytics is loaded

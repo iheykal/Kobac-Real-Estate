@@ -378,7 +378,20 @@ export default function AgentProfilePage() {
                   <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6">
                     <div className="flex items-center space-x-2">
                       <Phone className="w-4 h-4" />
-                      <span>{formatPhoneNumber(agent.phone)}</span>
+                      <span 
+                        className="cursor-pointer hover:text-blue-600 transition-colors"
+                        onClick={() => {
+                          if (agent.phone) {
+                            // Clean the phone number for tel: link and format with 061
+                            const cleanPhone = agent.phone.replace(/\D/g, '');
+                            const formattedPhone = cleanPhone.startsWith('2526') ? `061${cleanPhone.substring(4)}` : `061${cleanPhone}`;
+                            const phoneLink = `tel:${formattedPhone}`;
+                            window.location.href = phoneLink;
+                          }
+                        }}
+                      >
+                        {formatPhoneNumber(agent.phone)}
+                      </span>
                     </div>
                     {agent.email && (
                       <div className="flex items-center space-x-2">
@@ -507,43 +520,40 @@ export default function AgentProfilePage() {
                               ? (property.beds > 0 && property.baths > 0 ? 'grid-cols-3' : 'grid-cols-2')
                               : 'grid-cols-2'
                           }`}>
-                            {/* Bedrooms - Show for rent properties with valid values, or for sale properties if agent provided them */}
-                            {((property.status === 'For Rent' && property.beds > 0 && property.baths > 0) || 
-                              (property.status === 'For Sale' && property.beds > 0 && property.baths > 0)) && (
-                              <div className="text-center group/stat">
-                                <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
-                                  <img 
-                                    src="/icons/bed.png" 
-                                    alt="Bed" 
-                                    className="w-7 h-7 md:w-9 md:h-9 object-contain"
-                                  />
+                            {/* Bedrooms and Bathrooms - Only show if values are greater than 0 */}
+                            {property.beds > 0 && property.baths > 0 && (
+                              <>
+                                <div className="text-center group/stat">
+                                  <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
+                                    <img 
+                                      src="/icons/bed.png" 
+                                      alt="Bed" 
+                                      className="w-7 h-7 md:w-9 md:h-9 object-contain"
+                                    />
+                                  </div>
+                                  <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.beds}</div>
+                                  <div className="text-slate-600 text-xs md:text-sm font-medium">Qol</div>
                                 </div>
-                                <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.beds}</div>
-                                <div className="text-slate-600 text-xs md:text-sm font-medium">Qol</div>
-                              </div>
-                            )}
-                            
-                            {/* Bathrooms - Show for rent properties with valid values, or for sale properties if agent provided them */}
-                            {((property.status === 'For Rent' && property.beds > 0 && property.baths > 0) || 
-                              (property.status === 'For Sale' && property.beds > 0 && property.baths > 0)) && (
-                              <div className="text-center group/stat">
-                                <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
-                                  <video 
-                                    src="/icons/shower1.mp4" 
-                                    autoPlay 
-                                    loop 
-                                    muted 
-                                    playsInline
-                                    className="w-9 h-9 md:w-11 md:h-11 object-contain"
-                                  />
+                                
+                                <div className="text-center group/stat">
+                                  <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
+                                    <video 
+                                      src="/icons/shower1.mp4" 
+                                      autoPlay 
+                                      loop 
+                                      muted 
+                                      playsInline
+                                      className="w-9 h-9 md:w-11 md:h-11 object-contain"
+                                    />
+                                  </div>
+                                  <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.baths}</div>
+                                  <div className="text-slate-600 text-xs md:text-sm font-medium">Suuli</div>
                                 </div>
-                                <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.baths}</div>
-                                <div className="text-slate-600 text-xs md:text-sm font-medium">Suuli</div>
-                              </div>
+                              </>
                             )}
 
-                            {/* Measurement - Only show for properties for sale */}
-                            {property.status === 'For Sale' && (
+                            {/* Measurement - Only show for properties for sale if QOL and Suuli are provided */}
+                            {property.status === 'For Sale' && property.beds > 0 && property.baths > 0 && (
                               <div className="text-center group/stat">
                                 <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
                                   <img 
@@ -575,7 +585,20 @@ export default function AgentProfilePage() {
                                   {capitalizeName(property.agent?.name || 'Agent')}
                                 </div>
                                 <div className="text-xs text-slate-500">
-                                  {property.agent?.phone ? formatPhoneNumber(property.agent.phone) : 'Contact Agent'}
+                                  <span 
+                                    className="cursor-pointer hover:text-blue-600 transition-colors"
+                                    onClick={() => {
+                                      if (property.agent?.phone) {
+                                        // Clean the phone number for tel: link and format with 061
+                                        const cleanPhone = property.agent.phone.replace(/\D/g, '');
+                                        const formattedPhone = cleanPhone.startsWith('2526') ? `061${cleanPhone.substring(4)}` : `061${cleanPhone}`;
+                                        const phoneLink = `tel:${formattedPhone}`;
+                                        window.location.href = phoneLink;
+                                      }
+                                    }}
+                                  >
+                                    {property.agent?.phone ? formatPhoneNumber(property.agent.phone) : 'Contact Agent'}
+                                  </span>
                                 </div>
                               </div>
                             </div>

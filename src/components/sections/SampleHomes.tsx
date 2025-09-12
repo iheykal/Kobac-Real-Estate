@@ -719,9 +719,39 @@ export const SampleHomes: React.FC = () => {
             </div>
           </div>
 
-          {/* Stats Grid */}
-          <div className={`grid gap-2 sm:gap-3 md:gap-4 lg:gap-6 mb-4 sm:mb-5 md:mb-6 lg:mb-8 ${property.status === 'For Sale' ? 'grid-cols-3' : 'grid-cols-2'}`}>
-            {/* Bedrooms */}
+          {/* Stats Grid - Show different fields based on property type */}
+          <div className={`grid gap-2 sm:gap-3 md:gap-4 lg:gap-6 mb-4 sm:mb-5 md:mb-6 lg:mb-8 ${property.status === 'For Sale' ? 'grid-cols-2' : 'grid-cols-2'}`}>
+            {/* For Sale properties: Show Sharciga and Cabbirka instead of QOL/Suuli */}
+            {property.status === 'For Sale' ? (
+              <>
+                <div className="text-center group/stat">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 flex items-center justify-center mx-auto mb-1 sm:mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
+                    <img 
+                      src="/icons/sharci.gif" 
+                      alt="Document" 
+                      className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 object-contain"
+                    />
+                  </div>
+                  <div className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-slate-900 mb-0.5 sm:mb-1">{property.documentType || 'Siyaad Barre'}</div>
+                  <div className="text-blue-800 text-xs sm:text-sm font-medium">Sharciga</div>
+                </div>
+                
+                <div className="text-center group/stat">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 flex items-center justify-center mx-auto mb-1 sm:mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
+                    <img 
+                      src="/icons/ruler.gif" 
+                      alt="Measurement" 
+                      className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-12 lg:h-12 object-contain"
+                    />
+                  </div>
+                  <div className="text-sm sm:text-base md:text-lg lg:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1">{property.measurement || 'N/A'}</div>
+                  <div className="text-blue-800 text-xs sm:text-sm font-medium">Cabbirka</div>
+                </div>
+              </>
+            ) : (
+              /* For Rent properties: Show QOL and Suuli only if values > 0 */
+              <>
+                {property.beds > 0 && (
             <div className="text-center group/stat">
               <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 flex items-center justify-center mx-auto mb-1 sm:mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
                 <NextImage 
@@ -734,10 +764,11 @@ export const SampleHomes: React.FC = () => {
                 />
               </div>
               <div className="text-sm sm:text-base md:text-lg lg:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1">{property.beds}</div>
-              <div className="text-slate-600 text-xs sm:text-sm font-medium">Qol</div>
+                    <div className="text-blue-800 text-xs sm:text-sm font-medium">Qol</div>
             </div>
+                )}
             
-            {/* Bathrooms */}
+                {property.baths > 0 && (
             <div className="text-center group/stat">
               <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 flex items-center justify-center mx-auto mb-1 sm:mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
                 <video 
@@ -750,22 +781,10 @@ export const SampleHomes: React.FC = () => {
                 />
               </div>
               <div className="text-sm sm:text-base md:text-lg lg:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1">{property.baths}</div>
-              <div className="text-slate-600 text-xs sm:text-sm font-medium">Suuli</div>
-            </div>
-
-            {/* Measurement - Only show for properties for sale */}
-            {property.status === 'For Sale' && (
-              <div className="text-center group/stat">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 flex items-center justify-center mx-auto mb-1 sm:mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
-                  <img 
-                    src="/icons/ruler.gif" 
-                    alt="Measurement" 
-                    className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-10 lg:h-10 object-contain"
-                  />
-                </div>
-                <div className="text-sm sm:text-base md:text-lg lg:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1">{property.measurement || 'N/A'}</div>
-                <div className="text-slate-600 text-xs sm:text-sm font-medium">Cabbirka</div>
+                    <div className="text-blue-800 text-xs sm:text-sm font-medium">Suuli</div>
               </div>
+                )}
+              </>
             )}
           </div>
 
@@ -794,7 +813,20 @@ export const SampleHomes: React.FC = () => {
                   )}
                 </div>
                 <div className="text-xs text-slate-500 truncate">
+                  <span 
+                    className="cursor-pointer hover:text-blue-600 transition-colors"
+                    onClick={() => {
+                      if (property.agent?.phone) {
+                        // Clean the phone number for tel: link and format with 061
+                        const cleanPhone = property.agent.phone.replace(/\D/g, '');
+                        const formattedPhone = cleanPhone.startsWith('2526') ? `061${cleanPhone.substring(4)}` : `061${cleanPhone}`;
+                        const phoneLink = `tel:${formattedPhone}`;
+                        window.location.href = phoneLink;
+                      }
+                    }}
+                  >
                   {property.agent?.phone ? formatPhoneNumber(property.agent.phone) : 'Contact Agent'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -891,14 +923,41 @@ export const SampleHomes: React.FC = () => {
                 </div>
 
                 {/* Stats Row */}
-                <div className={`flex items-center mb-6 ${
-                  property.status === 'For Sale' 
-                    ? (property.beds > 0 && property.baths > 0 ? 'space-x-6' : 'space-x-8')
-                    : 'space-x-8'
-                }`}>
-                  {/* Bedrooms - Show for rent properties with valid values, or for sale properties if agent provided them */}
-                  {((property.status === 'For Rent' && property.beds > 0 && property.baths > 0) || 
-                    (property.status === 'For Sale' && property.beds > 0 && property.baths > 0)) && (
+                <div className="flex items-center mb-6 space-x-8">
+                  {/* For Sale properties: Show Sharciga instead of QOL/Suuli */}
+                  {property.status === 'For Sale' ? (
+                    <>
+                      <div className="flex items-center space-x-2">
+                        <img 
+                          src="/icons/sharci.gif" 
+                          alt="Document" 
+                          className="w-9 h-9 object-contain"
+                        />
+                        <div>
+                          <div className="text-lg font-bold text-slate-900">{property.documentType || 'Siyaad Barre'}</div>
+                          <div className="text-blue-800 text-sm font-medium">Sharciga</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <NextImage 
+                          src="/icons/ruler.gif" 
+                          alt="Measurement" 
+                          width={32}
+                          height={32}
+                          className="w-9 h-9 object-contain"
+                          loading="lazy"
+                        />
+                        <div>
+                          <div className="text-xl font-bold text-slate-900">{property.measurement || 'N/A'}</div>
+                          <div className="text-blue-800 text-sm font-medium">Cabbirka</div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    /* For Rent properties: Show QOL and Suuli only if values > 0 */
+                    <>
+                      {property.beds > 0 && (
                     <div className="flex items-center space-x-2">
                       <NextImage 
                         src="/icons/bed.png" 
@@ -910,14 +969,12 @@ export const SampleHomes: React.FC = () => {
                       />
                       <div>
                         <div className="text-xl font-bold text-slate-900">{property.beds}</div>
-                        <div className="text-slate-600 text-sm font-medium">Qol</div>
+                            <div className="text-blue-800 text-sm font-medium">Qol</div>
                       </div>
                     </div>
                   )}
                   
-                  {/* Bathrooms - Show for rent properties with valid values, or for sale properties if agent provided them */}
-                  {((property.status === 'For Rent' && property.beds > 0 && property.baths > 0) || 
-                    (property.status === 'For Sale' && property.beds > 0 && property.baths > 0)) && (
+                      {property.baths > 0 && (
                     <div className="flex items-center space-x-2">
                       <video 
                         src="/icons/shower1.mp4" 
@@ -929,25 +986,13 @@ export const SampleHomes: React.FC = () => {
                       />
                       <div>
                         <div className="text-xl font-bold text-slate-900">{property.baths}</div>
-                        <div className="text-slate-600 text-sm font-medium">Suuli</div>
+                            <div className="text-blue-800 text-sm font-medium">Suuli</div>
                       </div>
                     </div>
+                  )}
+                    </>
                   )}
 
-                  {/* Measurement - Only show for properties for sale */}
-                  {property.status === 'For Sale' && (
-                    <div className="flex items-center space-x-2">
-                      <img 
-                        src="/icons/ruler.gif" 
-                        alt="Measurement" 
-                        className="w-7 h-7 object-contain"
-                      />
-                      <div>
-                        <div className="text-xl font-bold text-slate-900">{property.measurement || 'N/A'}</div>
-                        <div className="text-slate-600 text-sm font-medium">Cabbirka</div>
-                      </div>
-                    </div>
-                  )}
 
 
                 </div>
@@ -992,7 +1037,20 @@ export const SampleHomes: React.FC = () => {
                         )}
                       </div>
                       <div className="text-sm text-slate-500">
+                        <span 
+                          className="cursor-pointer hover:text-blue-600 transition-colors"
+                          onClick={() => {
+                            if (property.agent?.phone) {
+                              // Clean the phone number for tel: link and format with 061
+                              const cleanPhone = property.agent.phone.replace(/\D/g, '');
+                              const formattedPhone = cleanPhone.startsWith('2526') ? `061${cleanPhone.substring(4)}` : `061${cleanPhone}`;
+                              const phoneLink = `tel:${formattedPhone}`;
+                              window.location.href = phoneLink;
+                            }
+                          }}
+                        >
                         {property.agent?.phone ? formatPhoneNumber(property.agent.phone) : 'Contact Agent'}
+                        </span>
                       </div>
                     </div>
                   </div>

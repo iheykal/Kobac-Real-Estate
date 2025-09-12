@@ -286,36 +286,70 @@ export const PropertyRecommendations: React.FC<PropertyRecommendationsProps> = (
                     </div>
                   </div>
 
-                  {/* Stats Grid */}
+                  {/* Stats Grid - Show different fields based on property type */}
                   <div className="grid grid-cols-2 gap-4 mb-4">
-                    {/* Bedrooms */}
-                    <div className="text-center group/stat">
-                      <div className="w-12 h-12 flex items-center justify-center mx-auto mb-2 group-hover/stat:scale-110 transition-transform duration-300">
-                        <img 
-                          src="/icons/bed.png" 
-                          alt="Bed" 
-                          className="w-6 h-6 object-contain"
-                        />
-                      </div>
-                      <div className="text-lg font-bold text-slate-900 mb-1">{property.beds}</div>
-                      <div className="text-slate-600 text-xs font-medium">Qol</div>
-                    </div>
-                    
-                    {/* Bathrooms */}
-                    <div className="text-center group/stat">
-                      <div className="w-12 h-12 flex items-center justify-center mx-auto mb-2 group-hover/stat:scale-110 transition-transform duration-300">
-                        <video 
-                          src="/icons/shower1.mp4" 
-                          autoPlay 
-                          loop 
-                          muted 
-                          playsInline
-                          className="w-6 h-6 object-contain"
-                        />
-                      </div>
-                      <div className="text-lg font-bold text-slate-900 mb-1">{property.baths}</div>
-                      <div className="text-slate-600 text-xs font-medium">Suuli</div>
-                    </div>
+                    {property.status === 'For Sale' ? (
+                      /* For Sale properties: Show Sharciga and Cabbirka */
+                      <>
+                        <div className="text-center group/stat">
+                          <div className="w-12 h-12 flex items-center justify-center mx-auto mb-2 group-hover/stat:scale-110 transition-transform duration-300">
+                            <img 
+                              src="/icons/sharci.gif" 
+                              alt="Document" 
+                              className="w-8 h-8 object-contain"
+                            />
+                          </div>
+                          <div className="text-sm font-bold text-slate-900 mb-1">{property.documentType || 'Siyaad Barre'}</div>
+                          <div className="text-blue-800 text-xs font-medium">Sharciga</div>
+                        </div>
+                        
+                        <div className="text-center group/stat">
+                          <div className="w-12 h-12 flex items-center justify-center mx-auto mb-2 group-hover/stat:scale-110 transition-transform duration-300">
+                            <img 
+                              src="/icons/ruler.gif" 
+                              alt="Measurement" 
+                              className="w-8 h-8 object-contain"
+                            />
+                          </div>
+                          <div className="text-lg font-bold text-slate-900 mb-1">{property.measurement || 'N/A'}</div>
+                          <div className="text-blue-800 text-xs font-medium">Cabbirka</div>
+                        </div>
+                      </>
+                    ) : (
+                      /* For Rent properties: Show QOL and Suuli only if values > 0 */
+                      <>
+                        {property.beds > 0 && (
+                          <div className="text-center group/stat">
+                            <div className="w-12 h-12 flex items-center justify-center mx-auto mb-2 group-hover/stat:scale-110 transition-transform duration-300">
+                              <img 
+                                src="/icons/bed.png" 
+                                alt="Bed" 
+                                className="w-6 h-6 object-contain"
+                              />
+                            </div>
+                            <div className="text-lg font-bold text-slate-900 mb-1">{property.beds}</div>
+                            <div className="text-blue-800 text-xs font-medium">Qol</div>
+                          </div>
+                        )}
+                        
+                        {property.baths > 0 && (
+                          <div className="text-center group/stat">
+                            <div className="w-12 h-12 flex items-center justify-center mx-auto mb-2 group-hover/stat:scale-110 transition-transform duration-300">
+                              <video 
+                                src="/icons/shower1.mp4" 
+                                autoPlay 
+                                loop 
+                                muted 
+                                playsInline
+                                className="w-6 h-6 object-contain"
+                              />
+                            </div>
+                            <div className="text-lg font-bold text-slate-900 mb-1">{property.baths}</div>
+                            <div className="text-blue-800 text-xs font-medium">Suuli</div>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
 
                   {/* Agent Preview */}
@@ -334,7 +368,18 @@ export const PropertyRecommendations: React.FC<PropertyRecommendationsProps> = (
                         <div className="font-semibold text-slate-900 text-sm">
                           {capitalizeName(property.agent?.name || 'Agent')}
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div 
+                          className="text-xs text-slate-500 cursor-pointer hover:text-blue-600 transition-colors"
+                          onClick={() => {
+                            if (property.agent?.phone) {
+                              // Clean the phone number for tel: link and format with 061
+                              const cleanPhone = property.agent.phone.replace(/\D/g, '');
+                              const formattedPhone = cleanPhone.startsWith('2526') ? `061${cleanPhone.substring(4)}` : `061${cleanPhone}`;
+                              const phoneLink = `tel:${formattedPhone}`;
+                              window.location.href = phoneLink;
+                            }
+                          }}
+                        >
                           {property.agent?.phone ? formatPhoneNumber(property.agent.phone) : 'Contact Agent'}
                         </div>
                       </div>

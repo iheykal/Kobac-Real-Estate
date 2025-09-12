@@ -445,7 +445,11 @@ export async function POST(request: NextRequest) {
       thumbnailImage,
       galleryImages: imagesArray,
       hasThumbnail: !!thumbnailImage,
-      hasGallery: imagesArray.length > 0
+      hasGallery: imagesArray.length > 0,
+      bodyImages: body.images,
+      bodyAdditionalImages: body.additionalImages,
+      bodyUploadedImages: body.uploadedImages,
+      nextPropertyId
     });
     
     // Prepare agent data for the property
@@ -521,6 +525,13 @@ export async function POST(request: NextRequest) {
     }, session.userId, 'agentId' as any);
     
     console.log('🏗️ Creating property with data:', propertyData);
+    console.log('📸 Final image data being saved:', {
+      thumbnailImage: propertyData.thumbnailImage,
+      images: propertyData.images,
+      imagesLength: propertyData.images?.length,
+      thumbnailImageType: typeof propertyData.thumbnailImage,
+      imagesType: typeof propertyData.images
+    });
     console.log('🔍 Status field debug:', {
       bodyStatus: body.status,
       bodyListingType: body.listingType,
@@ -581,6 +592,13 @@ export async function POST(request: NextRequest) {
     if (savedProperty) {
       console.log('🔍 Verification - Property deletionStatus:', savedProperty.deletionStatus);
       console.log('🔍 Verification - Property is queryable:', savedProperty.deletionStatus !== 'deleted');
+      console.log('📸 Verification - Saved property images:', {
+        thumbnailImage: savedProperty.thumbnailImage,
+        images: savedProperty.images,
+        imagesLength: savedProperty.images?.length,
+        thumbnailImageType: typeof savedProperty.thumbnailImage,
+        imagesType: typeof savedProperty.images
+      });
     }
     
     return NextResponse.json({ 

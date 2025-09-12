@@ -150,19 +150,28 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
   const router = useRouter()
   const [selectedImage, setSelectedImage] = useState(0)
   
-  // Get all image URLs and log debug info
+  // Get all image URLs
   const allImageUrls = React.useMemo(() => {
-    const urls = getAllImageUrls(property);
-    console.log('🖼️ PropertyDetail v2.1: Property image data:', {
+    console.log('🔍 PropertyDetail: Getting image URLs for property:', {
       propertyId: property.propertyId || property._id,
-      title: property.title,
       thumbnailImage: property.thumbnailImage,
       images: property.images,
+      image: property.image,
+      thumbnailImageType: typeof property.thumbnailImage,
+      imagesType: typeof property.images,
       imagesLength: property.images?.length,
-      allImageUrls: urls,
-      allImageUrlsCount: urls.length,
-      thumbnailInImages: property.thumbnailImage ? property.images?.includes(property.thumbnailImage) : false
+      hasThumbnailImage: !!property.thumbnailImage,
+      hasImages: !!property.images,
+      imagesArray: Array.isArray(property.images) ? property.images : 'not an array'
     });
+    
+    const urls = getAllImageUrls(property);
+    console.log('🔍 PropertyDetail: Resolved image URLs:', {
+      urls,
+      urlsLength: urls.length,
+      urlsDetails: urls.map((url, index) => ({ index, url, type: typeof url }))
+    });
+    
     return urls;
   }, [property]);
   const [isFavorite, setIsFavorite] = useState(false)
@@ -331,22 +340,42 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
               
               {/* Left Side - Flexible Property Images */}
               <div className="space-y-6">
-                <PropertyImageGallery
-                  images={allImageUrls}
-                  altPrefix={property.title}
-                  aspectRatio="auto"
-                  objectFit="contain"
-                  enableZoom={false}
-                  showThumbnails={true}
-                  autoPlay={false}
-                  watermark={{
-                    src: "/icons/header.png",
-                    position: "center",
-                    size: "large",
-                    opacity: 0.7
-                  }}
-                  containerClassName="w-full"
-                />
+                {allImageUrls.length > 0 ? (
+                  <PropertyImageGallery
+                    images={allImageUrls}
+                    altPrefix={property.title}
+                    aspectRatio="auto"
+                    objectFit="contain"
+                    enableZoom={false}
+                    showThumbnails={true}
+                    autoPlay={false}
+                    watermark={{
+                      src: "/icons/header.png",
+                      position: "center",
+                      size: "large",
+                      opacity: 0.7
+                    }}
+                    containerClassName="w-full"
+                  />
+                ) : (
+                  <div className="w-full min-h-[400px] flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl border-2 border-dashed border-gray-300">
+                    <div className="text-center text-gray-500 p-8">
+                      <div className="w-20 h-20 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
+                        <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-700 mb-2">No Images Available</h3>
+                      <p className="text-gray-500 mb-4">Images for this property will be added soon</p>
+                      <div className="flex items-center justify-center space-x-2 text-sm text-gray-400">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Contact agent for more details</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               {/* Right Side - Property Details */}
               <div className="space-y-6">
@@ -399,8 +428,8 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                     </div>
                   )}
                   
-                  {/* Measurement - Only show for properties for sale */}
-                  {property.status === 'For Sale' && (
+                  {/* Measurement - Only show for properties for sale if QOL and Suuli are provided */}
+                  {property.status === 'For Sale' && property.beds > 0 && property.baths > 0 && (
                     <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
                       <div className="w-16 h-16 flex items-center justify-center mx-auto mb-2">
                         <img 
@@ -415,36 +444,65 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                     </div>
                   )}
                   
-                  {/* Beds and Baths - Show for rent properties with valid values, or for sale properties if agent provided them */}
-                  {((property.status === 'For Rent' && property.beds > 0 && property.baths > 0) || 
-                    (property.status === 'For Sale' && property.beds > 0 && property.baths > 0)) && (
+                  {/* For Sale properties: Show Sharciga and Cabbirka instead of QOL/Suuli */}
+                  {property.status === 'For Sale' ? (
                     <>
                       <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
                         <div className="w-16 h-16 flex items-center justify-center mx-auto mb-2">
                           <img 
-                            src="/icons/bed.png" 
-                            alt="Bed" 
-                            className="w-10 h-10 object-contain"
+                            src="/icons/sharci.gif" 
+                            alt="Document" 
+                            className="w-12 h-12 object-contain"
                           />
                         </div>
-                        <div className="text-xl font-bold text-slate-900">{property.beds}</div>
-                        <div className="text-sm text-slate-600">Qol</div>
+                        <div className="text-lg font-bold text-slate-900">{property.documentType || 'Siyaad Barre'}</div>
+                        <div className="text-sm text-blue-800">Sharciga</div>
                       </div>
                       <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
                         <div className="w-20 h-20 flex items-center justify-center mx-auto mb-2">
-                          <video 
-                            src="/icons/shower1.mp4" 
-                            autoPlay 
-                            loop 
-                            muted 
-                            playsInline
-                            className="w-12 h-12 object-contain mix-blend-multiply"
-                            style={{ filter: 'contrast(1.2) brightness(1.1)' }}
+                          <img 
+                            src="/icons/Ruler2.gif" 
+                            alt="Measurement" 
+                            className="w-16 h-16 object-contain"
                           />
                         </div>
-                        <div className="text-xl font-bold text-slate-900">{property.baths}</div>
-                        <div className="text-sm text-slate-600">Suuli</div>
+                        <div className="text-xl font-bold text-slate-900">{property.measurement || 'N/A'}</div>
+                        <div className="text-sm text-blue-800">Cabbirka</div>
                       </div>
+                    </>
+                  ) : (
+                    /* For Rent properties: Show QOL and Suuli only if values > 0 */
+                    <>
+                      {property.beds > 0 && (
+                        <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+                          <div className="w-16 h-16 flex items-center justify-center mx-auto mb-2">
+                            <img 
+                              src="/icons/bed.png" 
+                              alt="Bed" 
+                              className="w-10 h-10 object-contain"
+                            />
+                          </div>
+                          <div className="text-xl font-bold text-slate-900">{property.beds}</div>
+                          <div className="text-sm text-blue-800">Qol</div>
+                        </div>
+                      )}
+                      {property.baths > 0 && (
+                        <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+                          <div className="w-20 h-20 flex items-center justify-center mx-auto mb-2">
+                            <video 
+                              src="/icons/shower1.mp4" 
+                              autoPlay 
+                              loop 
+                              muted 
+                              playsInline
+                              className="w-12 h-12 object-contain mix-blend-multiply"
+                              style={{ filter: 'contrast(1.2) brightness(1.1)' }}
+                            />
+                          </div>
+                          <div className="text-xl font-bold text-slate-900">{property.baths}</div>
+                          <div className="text-sm text-blue-800">Suuli</div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -595,6 +653,15 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                     {/* Contact Buttons */}
                     <div className="space-y-3">
                       <button 
+                        onClick={() => {
+                          if (property.agent?.phone) {
+                            // Clean the phone number for tel: link and format with 061
+                            const cleanPhone = property.agent.phone.replace(/\D/g, '');
+                            const formattedPhone = cleanPhone.startsWith('2526') ? `061${cleanPhone.substring(4)}` : `061${cleanPhone}`;
+                            const phoneLink = `tel:${formattedPhone}`;
+                            window.location.href = phoneLink;
+                          }
+                        }}
                         className="w-full bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center space-x-2 group"
                       >
                         <motion.div

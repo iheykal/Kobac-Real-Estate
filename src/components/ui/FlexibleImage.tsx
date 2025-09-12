@@ -79,7 +79,10 @@ export const FlexibleImage: React.FC<FlexibleImageProps> = ({
     console.error('FlexibleImage failed to load:', {
       src,
       alt,
-      error: e
+      error: e,
+      imageSrc: (e.target as HTMLImageElement).src,
+      naturalWidth: (e.target as HTMLImageElement).naturalWidth,
+      naturalHeight: (e.target as HTMLImageElement).naturalHeight
     });
     
     setImageError(true);
@@ -442,6 +445,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
             </svg>
           </div>
           <p className="text-lg font-medium">No images available</p>
+          <p className="text-sm text-gray-400 mt-2">Images will be added soon</p>
         </div>
       </div>
     );

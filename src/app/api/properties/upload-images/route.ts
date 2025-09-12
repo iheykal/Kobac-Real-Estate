@@ -8,6 +8,24 @@ export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
   try {
     console.log('📸 Property image upload request received');
+    console.log('🔍 Environment check at start:', {
+      R2_ENDPOINT: process.env.R2_ENDPOINT ? 'SET' : 'NOT SET',
+      R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID ? 'SET' : 'NOT SET',
+      R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY ? 'SET' : 'NOT SET',
+      R2_BUCKET: process.env.R2_BUCKET ? 'SET' : 'NOT SET',
+      R2_PUBLIC_BASE_URL: process.env.R2_PUBLIC_BASE_URL ? 'SET' : 'NOT SET'
+    });
+    
+    // Check if we have the required environment variables
+    if (!process.env.R2_ENDPOINT || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY || !process.env.R2_BUCKET) {
+      console.error('❌ Missing required R2 environment variables');
+      return NextResponse.json({ 
+        success: false, 
+        error: 'R2 configuration missing. Please check environment variables.' 
+      }, { status: 500 });
+    }
+    
+    console.log('✅ All required R2 environment variables are present');
     
     // Get session for authorization
     const session = getSessionFromRequest(req);
@@ -35,10 +53,18 @@ export async function POST(req: NextRequest) {
     const files = form.getAll('files') as File[];
     let listingId = form.get('listingId') as string;
     
+    console.log('📸 Form data parsed:', {
+      filesCount: files.length,
+      listingId: listingId,
+      filesInfo: files.map(f => f instanceof File ? { name: f.name, size: f.size, type: f.type } : { name: 'unknown', size: 0, type: 'unknown' })
+    });
+    
     // Generate a unique identifier for this upload session if no listingId is provided
     const uploadSessionId = listingId || `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    console.log('📸 Upload session ID:', uploadSessionId);
 
     if (!files.length) {
+      console.error('❌ No files provided in request');
       return NextResponse.json({ success: false, error: 'No files provided' }, { status: 400 });
     }
 
@@ -46,9 +72,11 @@ export async function POST(req: NextRequest) {
     console.log('📸 Files to upload:', files.map(f => f instanceof File ? { name: f.name, size: f.size, type: f.type } : { name: 'unknown', size: 0, type: 'unknown' }));
 
     // dynamic import to keep bundle small
+    console.log('📸 Starting dynamic imports...');
     const [{ S3Client, PutObjectCommand }] = await Promise.all([
       import('@aws-sdk/client-s3'),
     ]);
+    console.log('✅ S3Client imported successfully');
 
     // Check R2 environment variables
     const missingEnvVars = [];
@@ -65,9 +93,51 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
+    console.log('✅ All R2 environment variables are present');
+
+    // Extract the actual endpoint URL from the environment variable
+    let r2Endpoint = process.env.R2_ENDPOINT!;
+    
+    console.log('🔍 Raw R2_ENDPOINT:', r2Endpoint);
+    
+    // Handle case where the environment variable contains key=value format
+    if (r2Endpoint.includes('R2_ENDPOINT=')) {
+      r2Endpoint = r2Endpoint.split('R2_ENDPOINT=')[1];
+      console.log('🔍 Extracted from R2_ENDPOINT= format:', r2Endpoint);
+    } else if (r2Endpoint.includes('r2_endpoint=')) {
+      r2Endpoint = r2Endpoint.split('r2_endpoint=')[1];
+      console.log('🔍 Extracted from r2_endpoint= format:', r2Endpoint);
+    }
+    
+    // If the endpoint contains the full URL, extract just the hostname
+    if (r2Endpoint.includes('https://')) {
+      r2Endpoint = r2Endpoint.replace('https://', '');
+    }
+    if (r2Endpoint.includes('http://')) {
+      r2Endpoint = r2Endpoint.replace('http://', '');
+    }
+    
+    console.log('🔍 R2 Endpoint processing:', {
+      original: process.env.R2_ENDPOINT,
+      processed: r2Endpoint
+    });
+    
+    // Validate the processed endpoint
+    if (!r2Endpoint || r2Endpoint.trim() === '') {
+      throw new Error('R2_ENDPOINT is empty after processing');
+    }
+    
+    // Ensure the endpoint doesn't contain any invalid characters
+    if (r2Endpoint.includes('=') || r2Endpoint.includes(' ')) {
+      throw new Error(`Invalid R2_ENDPOINT format after processing: ${r2Endpoint}. Original: ${process.env.R2_ENDPOINT}`);
+    }
+    
+    const finalEndpoint = `https://${r2Endpoint}`;
+    console.log('🔍 Final S3 endpoint:', finalEndpoint);
+
     const s3 = new S3Client({
       region: 'auto',
-      endpoint: process.env.R2_ENDPOINT!,
+      endpoint: finalEndpoint,
       credentials: {
         accessKeyId: process.env.R2_ACCESS_KEY_ID!,
         secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
@@ -76,80 +146,213 @@ export async function POST(req: NextRequest) {
       maxAttempts: 3,
     });
 
+    console.log('✅ S3 client created successfully');
+
     const bucket = process.env.R2_BUCKET!;
     const publicBase = process.env.R2_PUBLIC_BASE_URL || '';
 
+    console.log('🔍 R2 Configuration Debug:', {
+      bucket: bucket,
+      publicBase: publicBase,
+      r2Endpoint: process.env.R2_ENDPOINT,
+      hasPublicBase: !!publicBase,
+      publicBaseLength: publicBase.length,
+      bucketLength: bucket.length,
+      allEnvVars: {
+        R2_ENDPOINT: process.env.R2_ENDPOINT,
+        R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID ? 'SET' : 'NOT SET',
+        R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY ? 'SET' : 'NOT SET',
+        R2_BUCKET: process.env.R2_BUCKET,
+        R2_PUBLIC_BASE_URL: process.env.R2_PUBLIC_BASE_URL
+      }
+    });
+
     const results: Array<{ key: string; url: string }> = [];
 
+    // Test URL generation before processing files
+    const testKey = 'test-key';
+    let testUrl: string;
+    try {
+      if (publicBase && publicBase.trim() !== '') {
+        const cleanPublicBase = publicBase.replace(/\/$/, '').trim();
+        if (cleanPublicBase.startsWith('http://') || cleanPublicBase.startsWith('https://')) {
+          testUrl = `${cleanPublicBase}/${testKey}`;
+        } else {
+          testUrl = `https://${cleanPublicBase}/${testKey}`;
+        }
+      } else {
+        testUrl = `https://${bucket}.r2.dev/${testKey}`;
+      }
+      
+      if (!testUrl || testUrl.trim() === '') {
+        throw new Error('Test URL is empty');
+      }
+      
+      new URL(testUrl);
+      console.log('✅ Test URL generation successful:', testUrl);
+    } catch (testError) {
+      console.error('❌ Test URL generation failed:', {
+        publicBase,
+        bucket,
+        testKey,
+        testUrl,
+        error: testError
+      });
+      throw new Error(`URL generation test failed: ${testError instanceof Error ? testError.message : 'Unknown error'}`);
+    }
+
+    console.log('📸 Starting file processing loop for', files.length, 'files');
+    
     for (const f of files) {
-      if (!(f instanceof File)) continue;
-      
-      // Type assertion since we've confirmed it's a File
-      const file = f as File;
-      console.log(`🔄 Processing property image: ${file.name} (${file.type})`);
-      
-      let processedFile: { buffer: Buffer; filename: string; contentType: string };
-      
-      // Check if it's an image file
-      if (file.type.startsWith('image/')) {
-        console.log('📸 Converting property image to WebP format...');
-        try {
-          processedFile = await processImageFileSafe(file, {
-            quality: 85, // Good balance of quality and file size for property images
-            width: 1920, // Max width for web display
-            height: 1080, // Max height for web display
-            fit: 'inside' // Maintain aspect ratio
-          });
-          console.log(`✅ WebP conversion successful: ${processedFile.filename}`);
-        } catch (error) {
-          console.error('❌ WebP conversion failed, using original:', error);
-          // Fallback to original file
+      try {
+        console.log('📸 Processing file:', f instanceof File ? f.name : 'unknown');
+        if (!(f instanceof File)) {
+          console.log('⚠️ Skipping non-File object');
+          continue;
+        }
+        
+        // Type assertion since we've confirmed it's a File
+        const file = f as File;
+        console.log(`🔄 Processing property image: ${file.name} (${file.type})`);
+        
+        let processedFile: { buffer: Buffer; filename: string; contentType: string };
+        
+        // Check if it's an image file
+        console.log('📸 File type check:', { type: file.type, isImage: file.type.startsWith('image/') });
+        
+        if (file.type.startsWith('image/')) {
+          console.log('📸 Converting property image to WebP format...');
+          try {
+            processedFile = await processImageFileSafe(file, {
+              quality: 85, // Good balance of quality and file size for property images
+              width: 1920, // Max width for web display
+              height: 1080, // Max height for web display
+              fit: 'inside' // Maintain aspect ratio
+            });
+            console.log(`✅ WebP conversion successful: ${processedFile.filename}`);
+          } catch (error) {
+            console.error('❌ WebP conversion failed, using original:', error);
+            console.error('❌ WebP conversion error details:', {
+              message: error instanceof Error ? error.message : 'Unknown error',
+              stack: error instanceof Error ? error.stack : undefined
+            });
+            // Fallback to original file
+            const bytes = await file.arrayBuffer();
+            processedFile = {
+              buffer: Buffer.from(bytes),
+              filename: sanitizeName(file.name),
+              contentType: file.type || 'application/octet-stream'
+            };
+            console.log('✅ Fallback to original file successful');
+          }
+        } else {
+          // For non-image files, use original
+          console.log('📄 Non-image file, using original format');
           const bytes = await file.arrayBuffer();
           processedFile = {
             buffer: Buffer.from(bytes),
             filename: sanitizeName(file.name),
             contentType: file.type || 'application/octet-stream'
           };
+          console.log('✅ Non-image file processed successfully');
         }
-      } else {
-        // For non-image files, use original
-        console.log('📄 Non-image file, using original format');
-        const bytes = await file.arrayBuffer();
-        processedFile = {
-          buffer: Buffer.from(bytes),
-          filename: sanitizeName(file.name),
-          contentType: file.type || 'application/octet-stream'
-        };
+        
+        // Create a unique key for each upload
+        console.log('📸 Generating unique key for file:', processedFile.filename);
+        const key = `properties/${uploadSessionId}/${cryptoRandom(8)}-${Date.now()}-${sanitizeName(processedFile.filename)}`;
+        console.log('📸 Generated key:', key);
+
+        const cmd = new PutObjectCommand({
+          Bucket: bucket,
+          Key: key,
+          Body: processedFile.buffer,
+          ContentType: processedFile.contentType,
+        });
+
+        console.log('📸 Uploading to R2:', {
+          bucket: bucket,
+          key: key,
+          contentType: processedFile.contentType,
+          bufferSize: processedFile.buffer.length
+        });
+
+        await s3.send(cmd);
+        console.log('✅ File uploaded to R2 successfully:', key);
+
+        // Generate correct R2 public URL format: https://bucket-name.r2.dev/key
+        let url: string;
+        
+        console.log('📸 Starting URL generation for key:', key);
+        console.log('📸 URL generation inputs:', {
+          publicBase: publicBase,
+          bucket: bucket,
+          key: key,
+          hasPublicBase: !!publicBase,
+          publicBaseLength: publicBase?.length || 0
+        });
+        
+        try {
+          // More robust URL generation with validation
+          if (publicBase && publicBase.trim() !== '') {
+            console.log('📸 Using publicBase for URL generation');
+            // Remove trailing slash from publicBase and add key
+            const cleanPublicBase = publicBase.replace(/\/$/, '').trim();
+            console.log('📸 Clean publicBase:', cleanPublicBase);
+            
+            if (cleanPublicBase.startsWith('http://') || cleanPublicBase.startsWith('https://')) {
+              url = `${cleanPublicBase}/${key}`;
+              console.log('📸 URL with protocol:', url);
+            } else {
+              // If publicBase doesn't start with http, prepend https://
+              url = `https://${cleanPublicBase}/${key}`;
+              console.log('📸 URL with added protocol:', url);
+            }
+          } else {
+            console.log('📸 Using fallback R2 URL format');
+            // Fallback to standard R2 URL format
+            url = `https://${bucket}.r2.dev/${key}`;
+            console.log('📸 Fallback URL:', url);
+          }
+          
+          // Additional validation
+          if (!url || url.trim() === '') {
+            throw new Error('Generated URL is empty');
+          }
+          
+          console.log('📸 Final URL before validation:', url);
+          
+          // Validate the URL before adding to results
+          new URL(url); // This will throw if URL is invalid
+          console.log('✅ URL validation successful');
+          
+          results.push({ key, url });
+          
+          console.log(`✅ Uploaded: ${key} -> ${url}`);
+          console.log(`🔍 URL Debug:`, {
+            publicBase: publicBase,
+            r2Endpoint: process.env.R2_ENDPOINT,
+            bucket: bucket,
+            key: key,
+            finalUrl: url,
+            urlFormat: 'https://bucket-name.r2.dev/key',
+            urlValid: true
+          });
+        } catch (urlError) {
+          console.error('❌ Invalid URL generated:', {
+            publicBase,
+            bucket,
+            key,
+            error: urlError,
+            generatedUrl: url,
+            errorMessage: urlError instanceof Error ? urlError.message : 'Unknown error',
+            errorStack: urlError instanceof Error ? urlError.stack : undefined
+          });
+          throw new Error(`Invalid URL generated: ${urlError instanceof Error ? urlError.message : 'Unknown URL error'}`);
+        }
+      } catch (fileError) {
+        console.error('❌ Error processing file:', fileError);
+        throw new Error(`File processing failed: ${fileError instanceof Error ? fileError.message : 'Unknown file error'}`);
       }
-      
-      // Create a unique key for each upload
-      const key = `properties/${uploadSessionId}/${cryptoRandom(8)}-${Date.now()}-${sanitizeName(processedFile.filename)}`;
-
-      const cmd = new PutObjectCommand({
-        Bucket: bucket,
-        Key: key,
-        Body: processedFile.buffer,
-        ContentType: processedFile.contentType,
-      });
-
-      await s3.send(cmd);
-
-      // Generate correct R2 public URL format: https://bucket-name.r2.dev/key
-      const url = publicBase
-        ? `${publicBase.replace(/\/$/, '')}/${key}`
-        : `https://${bucket}.r2.dev/${key}`;
-
-      results.push({ key, url });
-      
-      console.log(`✅ Uploaded: ${key} -> ${url}`);
-      console.log(`🔍 URL Debug:`, {
-        publicBase: publicBase,
-        r2Endpoint: process.env.R2_ENDPOINT,
-        bucket: bucket,
-        key: key,
-        finalUrl: url,
-        urlFormat: 'https://bucket-name.r2.dev/key'
-      });
     }
 
     console.log(`🎉 Successfully uploaded ${results.length} files to R2 with WebP conversion`);
@@ -163,6 +366,13 @@ export async function POST(req: NextRequest) {
     
   } catch (err: any) {
     console.error('❌ Property image upload error:', err);
+    console.error('❌ Error stack:', err?.stack);
+    console.error('❌ Error details:', {
+      message: err?.message,
+      name: err?.name,
+      cause: err?.cause,
+      code: err?.code
+    });
     return NextResponse.json(
       { success: false, error: err?.message || 'Upload failed' },
       { status: 500 }

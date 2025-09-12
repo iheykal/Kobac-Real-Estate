@@ -100,11 +100,7 @@ export function getAllImageUrls(property: {
         return true;
       }
       // Exclude images that match the thumbnail URL
-      const isDuplicate = img === resolvedThumbnail;
-      if (isDuplicate) {
-        console.log('🖼️ Filtering out duplicate thumbnail from additional images:', img);
-      }
-      return !isDuplicate;
+      return img !== resolvedThumbnail;
     });
     urls.push(...uniqueImages);
   }

@@ -240,10 +240,10 @@ export default function AboutPage() {
                   <div className="bg-white rounded-lg p-6 shadow-md min-w-fit">
                     <p className="text-slate-600 mb-2 font-medium">Call us today:</p>
                     <a 
-                      href="tel:+252610251014" 
+                      href="tel:+0610251014" 
                       className="text-2xl font-bold text-green-600 hover:text-green-700 transition-colors duration-200 whitespace-nowrap block text-center"
                     >
-                      +252 610251014
+                      +061 0251014
                     </a>
                   </div>
                 </div>

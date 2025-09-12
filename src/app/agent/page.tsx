@@ -98,7 +98,9 @@ export default function AgentDashboard() {
   const [editData, setEditData] = useState({
     id: '',
     title: '',
-    description: ''
+    description: '',
+    thumbnailImage: null as File | null,
+    additionalImages: [] as File[]
   })
   // Removed authChecked state - now using UserContext
 
@@ -699,31 +701,107 @@ export default function AgentDashboard() {
     }
 
     try {
+      setUploadingImages(true)
+      
+      // Prepare the update payload
+      let updatePayload: any = {
+        title: editData.title,
+        description: editData.description
+      }
+
+      // Handle image uploads if any images are selected
+      if (editData.thumbnailImage || (editData.additionalImages && editData.additionalImages.length > 0)) {
+        console.log('📸 Editing property with images:', {
+          thumbnailImage: editData.thumbnailImage?.name,
+          additionalImages: editData.additionalImages?.map(f => f.name) || [],
+          totalImages: (editData.thumbnailImage ? 1 : 0) + (editData.additionalImages?.length || 0)
+        })
+
+        // Combine thumbnail and additional images, avoiding duplicates
+        const allImages: File[] = []
+        const addedFiles = new Set<string>()
+
+        if (editData.thumbnailImage) {
+          allImages.push(editData.thumbnailImage)
+          addedFiles.add(editData.thumbnailImage.name)
+        }
+
+        // Add additional images, skipping any that are the same as the thumbnail
+        if (editData.additionalImages) {
+          editData.additionalImages.forEach(file => {
+            if (!addedFiles.has(file.name)) {
+              allImages.push(file)
+              addedFiles.add(file.name)
+            }
+          })
+        }
+
+        if (allImages.length > 0) {
+          console.log('📸 Uploading images for property edit:', allImages.map(f => f.name))
+          
+          try {
+            // Upload images to R2
+            const uploadResults = await uploadPropertyImagesToR2(allImages, editData.id)
+            const imageUrls = uploadResults.map(result => result.url)
+            
+            console.log('✅ Images uploaded for edit:', imageUrls)
+            
+            // Add image data to update payload - only if we have valid URLs
+            if (imageUrls.length > 0) {
+              updatePayload.thumbnailImage = imageUrls[0] || null
+              updatePayload.images = imageUrls.slice(1) || []
+            }
+          } catch (uploadError) {
+            console.error('❌ Image upload failed during edit:', uploadError)
+            throw new Error(`Image upload failed: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`)
+          }
+        }
+      }
+
+      console.log('🔄 Updating property with payload:', updatePayload)
+
       const response = await fetch(`/api/properties/${editData.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          title: editData.title,
-          description: editData.description
-        })
+        body: JSON.stringify(updatePayload)
       })
 
       const result = await response.json()
+      console.log('🔄 Property update response:', {
+        status: response.status,
+        ok: response.ok,
+        result: result
+      })
+      
       if (response.ok) {
         alert('Property updated successfully!')
         setShowEditModal(false)
-        setEditData({ id: '', title: '', description: '' })
+        setEditData({ id: '', title: '', description: '', thumbnailImage: null, additionalImages: [] })
         fetchAgentProperties(user!.id)
         // Re-fetch total views after successful edit
         fetchAgentTotalViews(user!.id)
         // Notify other components about the property update
         propertyEventManager.notifyUpdated(editData.id)
       } else {
-        alert(result?.error || 'Failed to update property')
+        console.error('❌ Property update failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          result: result,
+          error: result?.error
+        })
+        alert(`Failed to update property: ${result?.error || 'Unknown error'}`)
       }
     } catch (error) {
-      alert('Error updating property')
+      console.error('❌ Error updating property:', error)
+      console.error('❌ Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        editData: editData
+      })
+      alert(`Error updating property: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setUploadingImages(false)
     }
   }
 
@@ -1272,24 +1350,64 @@ export default function AgentDashboard() {
                       
                       {/* Property Features */}
                       <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className="flex items-center space-x-2 text-gray-600">
-                          <div className="p-2 rounded-lg bg-blue-50">
-                            <Bed className="w-4 h-4 text-blue-600" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{property.bedrooms || '0'}</p>
-                            <p className="text-xs text-gray-500">Bedrooms</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2 text-gray-600">
-                          <div className="p-2 rounded-lg bg-emerald-50">
-                            <Bath className="w-4 h-4 text-emerald-600" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{property.bathrooms || '0'}</p>
-                            <p className="text-xs text-gray-500">Bathrooms</p>
-                          </div>
-                        </div>
+                        {/* For Sale properties: Show Sharciga instead of QOL/Suuli */}
+                        {property.listingType === 'sale' ? (
+                          <>
+                            <div className="flex items-center space-x-2 text-gray-600">
+                              <div className="p-2 rounded-lg bg-blue-50">
+                                <img 
+                                  src="/icons/sharci.gif" 
+                                  alt="Document" 
+                                  className="w-6 h-6 object-contain"
+                                />
+                              </div>
+                              <div>
+                                <p className="text-xs font-medium text-gray-900">{property.documentType || 'Siyaad Barre'}</p>
+                                <p className="text-xs text-blue-800">Sharciga</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2 text-gray-600">
+                              <div className="p-2 rounded-lg bg-emerald-50">
+                                <img 
+                                  src="/icons/ruler.gif" 
+                                  alt="Measurement" 
+                                  className="w-6 h-6 object-contain"
+                                />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">{property.measurement || 'N/A'}</p>
+                                <p className="text-xs text-blue-800">Cabbirka</p>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          /* For Rent properties: Show QOL and Suuli only if values > 0 */
+                          <>
+                            {parseInt(property.bedrooms || '0') > 0 && (
+                              <div className="flex items-center space-x-2 text-gray-600">
+                                <div className="p-2 rounded-lg bg-blue-50">
+                                  <Bed className="w-4 h-4 text-blue-600" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900">{property.bedrooms}</p>
+                                  <p className="text-xs text-blue-800">Qol</p>
+                                </div>
+                              </div>
+                            )}
+                            {parseInt(property.bathrooms || '0') > 0 && (
+                              <div className="flex items-center space-x-2 text-gray-600">
+                                <div className="p-2 rounded-lg bg-emerald-50">
+                                  <Bath className="w-4 h-4 text-emerald-600" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900">{property.bathrooms}</p>
+                                  <p className="text-xs text-blue-800">Suuli</p>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+                        
                         <div className="flex items-center space-x-2 text-gray-600">
                           <div className="p-2 rounded-lg bg-purple-50">
                             <Home className="w-4 h-4 text-purple-600" />
@@ -1397,7 +1515,15 @@ export default function AgentDashboard() {
                   <label className="block text-sm font-semibold text-gray-800 mb-3">Listing Type *</label>
                   <select
                     value={propertyData.listingType}
-                    onChange={(e) => setPropertyData(prev => ({ ...prev, listingType: e.target.value }))}
+                    onChange={(e) => {
+                      const newListingType = e.target.value;
+                      setPropertyData(prev => ({ 
+                        ...prev, 
+                        listingType: newListingType,
+                        // Clear documentType when switching to rent
+                        documentType: newListingType === 'rent' ? '' : prev.documentType
+                      }));
+                    }}
                     className="w-full px-4 py-4 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-white hover:border-gray-300"
                   >
                     <option value="sale">Iib (Sale)</option>
@@ -1405,18 +1531,21 @@ export default function AgentDashboard() {
                   </select>
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-800 mb-3">Sharciga (Document Type)</label>
-                  <select
-                    value={propertyData.documentType}
-                    onChange={(e) => setPropertyData(prev => ({ ...prev, documentType: e.target.value }))}
-                    className="w-full px-4 py-4 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-white hover:border-gray-300"
-                  >
-                    <option value="">Select document type</option>
-                    <option value="Siyaad Barre">Siyaad Barre</option>
-                    <option value="Fedaraal">Fedaraal</option>
-                  </select>
-                </div>
+                {/* Document Type - Only show for sale properties */}
+                {propertyData.listingType === 'sale' && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-800 mb-3">Sharciga (Document Type)</label>
+                    <select
+                      value={propertyData.documentType}
+                      onChange={(e) => setPropertyData(prev => ({ ...prev, documentType: e.target.value }))}
+                      className="w-full px-4 py-4 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-white hover:border-gray-300"
+                    >
+                      <option value="">Select document type</option>
+                      <option value="Siyaad Barre">Siyaad Barre</option>
+                      <option value="Fedaraal">Fedaraal</option>
+                    </select>
+                  </div>
+                )}
                 {propertyData.listingType === 'sale' && (
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-800 mb-3">Cabirka (Measurement) *</label>
@@ -1496,7 +1625,7 @@ export default function AgentDashboard() {
                     <option value="Shibis">Shibis</option>
                     <option value="Waberi">Waberi</option>
                     <option value="Wadajir">Wadajir</option>
-                    <option value="Warta Nabada (formerly Wardhigley)">Warta Nabada (formerly Wardhigley)</option>
+                    <option value="Wardhiigleey">Wardhiigleey</option>
                     <option value="Yaqshid">Yaqshid</option>
                     <option value="Darusalam">Darusalam</option>
                     <option value="Dharkenley">Dharkenley</option>
@@ -1709,6 +1838,72 @@ export default function AgentDashboard() {
                     placeholder="Enter property description"
                   />
                 </div>
+
+                {/* Image Upload Section for Edit */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-800 mb-3">
+                      🖼️ Update Property Images
+                    </label>
+                    <div className="space-y-4">
+                      {/* Thumbnail Image Upload */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Thumbnail Image (Main Image)
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null
+                            setEditData(prev => ({ ...prev, thumbnailImage: file }))
+                          }}
+                          className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                        {editData.thumbnailImage && (
+                          <p className="text-sm text-green-600 mt-2">
+                            ✅ Selected: {editData.thumbnailImage.name}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Additional Images Upload */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Additional Images
+                        </label>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || [])
+                            setEditData(prev => ({ ...prev, additionalImages: files }))
+                          }}
+                          className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                        />
+                        {editData.additionalImages && editData.additionalImages.length > 0 && (
+                          <div className="mt-2">
+                            <p className="text-sm text-green-600 font-medium">
+                              ✅ Selected {editData.additionalImages.length} additional image(s):
+                            </p>
+                            <ul className="text-sm text-green-600 space-y-1 mt-1">
+                              {editData.additionalImages.map((file, index) => (
+                                <li key={index} className="flex items-center space-x-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                  <span>{file.name}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-3">
+                      💡 Images will be automatically optimized and uploaded to Cloudflare R2
+                    </p>
+                  </div>
+                </div>
               </div>
               
               <div className="flex justify-end space-x-4 mt-8">
@@ -1720,9 +1915,21 @@ export default function AgentDashboard() {
                 </button>
                 <button
                   onClick={handleEditProperty}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-medium"
+                  disabled={uploadingImages}
+                  className={`px-6 py-3 rounded-xl transition-all duration-300 font-medium ${
+                    uploadingImages 
+                      ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
+                  }`}
                 >
-                  Update Property
+                  {uploadingImages ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Uploading Images...</span>
+                    </div>
+                  ) : (
+                    'Update Property'
+                  )}
                 </button>
               </div>
             </motion.div>

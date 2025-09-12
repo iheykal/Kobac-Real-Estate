@@ -98,7 +98,7 @@ const PropertySchema: Schema = new Schema({
       'Shangani',
       'Shibis',
       'Waberi',
-      'Warta Nabada (formerly Wardhigley)',
+      'Wardhiigleey',
       'Wadajir',
       'Yaqshid',
       'Darusalam',
