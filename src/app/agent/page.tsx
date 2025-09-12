@@ -650,6 +650,7 @@ export default function AgentDashboard() {
         title: '',
         propertyType: 'villa',
         listingType: 'sale',
+        documentType: '',
         measurement: '',
         description: '',
         price: '',
