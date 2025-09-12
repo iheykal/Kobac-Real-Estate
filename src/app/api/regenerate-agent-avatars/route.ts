@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     for (const agent of allAgents) {
       try {
         // Generate new unique avatar with improved parameters
-        const newAvatar = generateAgentAvatar(agent._id.toString(), agent.email);
+        const newAvatar = generateAgentAvatar(agent._id.toString(), agent.email, agent.fullName);
         
         // Update the agent's avatar in both locations for consistency
         await User.findByIdAndUpdate(agent._id, {

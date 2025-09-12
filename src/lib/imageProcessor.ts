@@ -18,6 +18,15 @@ export async function convertToWebP(
   buffer: Buffer, 
   options: ImageProcessingOptions = {}
 ): Promise<{ buffer: Buffer; filename: string }> {
+  const {
+    quality = 85, // Increased default quality from 80 to 85
+    width,
+    height,
+    fit = 'cover',
+    validateOutput = true, // New: validate output by default
+    fallbackToOriginal = false // New: fallback option
+  } = options;
+
   try {
     const sharp = await getSharp();
     
@@ -25,15 +34,6 @@ export async function convertToWebP(
     if (!sharp || typeof sharp !== 'function') {
       throw new Error('Sharp library not properly imported');
     }
-    
-    const {
-      quality = 85, // Increased default quality from 80 to 85
-      width,
-      height,
-      fit = 'cover',
-      validateOutput = true, // New: validate output by default
-      fallbackToOriginal = false // New: fallback option
-    } = options;
     // Validate input buffer
     if (!buffer || buffer.length === 0) {
       throw new Error('Invalid input buffer: buffer is empty or null');

@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       role: UserRole.SUPERADMIN,
       status: UserStatus.ACTIVE,
       profile: {
-        avatar: generateSuperAdminAvatar(phone),
+        avatar: generateSuperAdminAvatar(phone, fullName),
         location: 'Somalia',
         occupation: 'System Administrator',
         company: 'Kobac Real Estate'

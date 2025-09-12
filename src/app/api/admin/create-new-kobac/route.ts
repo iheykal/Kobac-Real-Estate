@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       role: UserRole.SUPERADMIN,
       status: UserStatus.ACTIVE,
       profile: {
-        avatar: generateSuperAdminAvatar("+252610251014"),
+        avatar: generateSuperAdminAvatar("+252610251014", "Kobac Real Estate"),
         location: "Somalia",
         occupation: "System Administrator",
         company: "Kobac Real Estate"

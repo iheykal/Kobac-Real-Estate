@@ -400,7 +400,7 @@ export async function POST(request: NextRequest) {
     // Get gallery images from additionalImages or uploadedImages
     // Ensure we have a fresh upload for this property
     if (body.images && Array.isArray(body.images)) {
-      imagesArray = [...new Set(body.images)]; // Remove duplicates
+      imagesArray = Array.from(new Set(body.images)); // Remove duplicates
       
       // If we have a listing ID, verify the images belong to this listing
       if (nextPropertyId) {

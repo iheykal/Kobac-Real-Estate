@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     for (const agent of agentsWithoutAvatars) {
       try {
         // Generate unique avatar based on agent ID and email
-        const uniqueAvatar = generateAgentAvatar(agent._id.toString(), agent.email);
+        const uniqueAvatar = generateAgentAvatar(agent._id.toString(), agent.email, agent.fullName);
         
         // Update the agent's avatar in both locations for consistency
         await User.findByIdAndUpdate(agent._id, {

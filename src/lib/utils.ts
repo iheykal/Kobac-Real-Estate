@@ -192,54 +192,71 @@ export const generateSessionId = () => {
 // Default avatar URL - centralized for consistency
 export const DEFAULT_AVATAR_URL = '/icons/kobac.png'
 
-// Function to get unique avatar for new users using DiceBear API
+// Agent avatar URL - for all agents except Kobac
+export const AGENT_AVATAR_URL = '/icons/line.png'
+
+// Function to get avatar for users - Kobac gets DiceBear, others get line.png
 export const generateUniqueAvatar = (fullName: string, phone: string, style?: string) => {
-  // Create a unique seed from name and phone
-  const seed = `${fullName}-${phone}`.replace(/\s+/g, '').toLowerCase();
+  // Check if this is Kobac Real Estate (superadmin)
+  const isKobac = fullName.toLowerCase().includes('kobac') || fullName.toLowerCase().includes('real estate');
   
-  // DiceBear API parameters for consistent, professional avatars
-  const params = new URLSearchParams({
-    seed: seed,
-    backgroundColor: 'b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf',
-    clothingColor: 'ff6b6b,4ecdc4,45b7d1,96ceb4,ffeaa7',
-    accessories: 'round',
-    clothing: 'shirtCrewNeck',
-    eye: 'happy',
-    eyebrow: 'default',
-    facialHair: 'medium',
-    hair: 'short',
-    hairColor: 'black,brown,blonde',
-    mouth: 'smile',
-    skinColor: 'light,tan,dark',
-    top: 'shortHairShortFlat'
-  });
+  if (isKobac) {
+    // Kobac gets the special DiceBear avatar
+    const seed = `${fullName}-${phone}`.replace(/\s+/g, '').toLowerCase();
+    
+    const params = new URLSearchParams({
+      seed: seed,
+      backgroundColor: 'b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf',
+      clothingColor: 'ff6b6b,4ecdc4,45b7d1,96ceb4,ffeaa7',
+      accessories: 'round',
+      clothing: 'shirtCrewNeck',
+      eye: 'happy',
+      eyebrow: 'default',
+      facialHair: 'medium',
+      hair: 'short',
+      hairColor: 'black,brown,blonde',
+      mouth: 'smile',
+      skinColor: 'light,tan,dark',
+      top: 'shortHairShortFlat'
+    });
+    
+    return `https://api.dicebear.com/7.x/avataaars/svg?${params.toString()}`;
+  }
   
-  return `https://api.dicebear.com/7.x/avataaars/svg?${params.toString()}`;
+  // All other agents get line.png
+  return AGENT_AVATAR_URL;
 };
 
-// Function to get unique avatar for superadmin using DiceBear API
-export const generateSuperAdminAvatar = (phone: string) => {
-  // Create a unique seed for superadmin
-  const seed = `superadmin-${phone}`.replace(/\s+/g, '').toLowerCase();
+// Function to get avatar for superadmin - Kobac gets DiceBear, others get line.png
+export const generateSuperAdminAvatar = (phone: string, fullName?: string) => {
+  // Check if this is Kobac Real Estate
+  const isKobac = fullName && (fullName.toLowerCase().includes('kobac') || fullName.toLowerCase().includes('real estate'));
   
-  // DiceBear API parameters for superadmin avatar
-  const params = new URLSearchParams({
-    seed: seed,
-    backgroundColor: 'ffd700,ffed4e,fff59d', // Gold colors for superadmin
-    clothingColor: '2c3e50,34495e,2c3e50', // Dark professional colors
-    accessories: 'prescription01',
-    clothing: 'shirtCrewNeck',
-    eye: 'happy',
-    eyebrow: 'default',
-    facialHair: 'none',
-    hair: 'shortHairShortFlat',
-    hairColor: 'black,brown',
-    mouth: 'smile',
-    skinColor: 'light,tan',
-    top: 'shortHairShortFlat'
-  });
+  if (isKobac) {
+    // Kobac gets the special DiceBear avatar
+    const seed = `superadmin-${phone}`.replace(/\s+/g, '').toLowerCase();
+    
+    const params = new URLSearchParams({
+      seed: seed,
+      backgroundColor: 'ffd700,ffed4e,fff59d', // Gold colors for superadmin
+      clothingColor: '2c3e50,34495e,2c3e50', // Dark professional colors
+      accessories: 'prescription01',
+      clothing: 'shirtCrewNeck',
+      eye: 'happy',
+      eyebrow: 'default',
+      facialHair: 'none',
+      hair: 'shortHairShortFlat',
+      hairColor: 'black,brown',
+      mouth: 'smile',
+      skinColor: 'light,tan',
+      top: 'shortHairShortFlat'
+    });
+    
+    return `https://api.dicebear.com/7.x/avataaars/svg?${params.toString()}`;
+  }
   
-  return `https://api.dicebear.com/7.x/avataaars/svg?${params.toString()}`;
+  // All other superadmins get line.png
+  return AGENT_AVATAR_URL;
 };
 
 // Robust Avatar Management System
@@ -410,26 +427,33 @@ export function sanitizeAvatarUrl(avatarUrl: string): string {
   return DEFAULT_AVATAR_URL;
 }
 
-export function generateAgentAvatar(agentId: string, email?: string): string {
-  // Create a unique seed for agent
-  const seed = `agent-${agentId}`.replace(/\s+/g, '').toLowerCase();
+export function generateAgentAvatar(agentId: string, email?: string, fullName?: string): string {
+  // Check if this is Kobac Real Estate
+  const isKobac = fullName && (fullName.toLowerCase().includes('kobac') || fullName.toLowerCase().includes('real estate'));
   
-  // DiceBear API parameters for agent avatar
-  const params = new URLSearchParams({
-    seed: seed,
-    backgroundColor: 'e3f2fd,bbdefb,90caf9',
-    clothingColor: '1976d2,1565c0,0d47a1',
-    accessories: 'round',
-    clothing: 'shirtCrewNeck',
-    eye: 'happy',
-    eyebrow: 'default',
-    facialHair: 'medium',
-    hair: 'short',
-    hairColor: 'black,brown,blonde',
-    mouth: 'smile',
-    skinColor: 'light,tan,dark',
-    top: 'shortHairShortFlat'
-  });
+  if (isKobac) {
+    // Kobac gets the special DiceBear avatar
+    const seed = `agent-${agentId}`.replace(/\s+/g, '').toLowerCase();
+    
+    const params = new URLSearchParams({
+      seed: seed,
+      backgroundColor: 'e3f2fd,bbdefb,90caf9',
+      clothingColor: '1976d2,1565c0,0d47a1',
+      accessories: 'round',
+      clothing: 'shirtCrewNeck',
+      eye: 'happy',
+      eyebrow: 'default',
+      facialHair: 'medium',
+      hair: 'short',
+      hairColor: 'black,brown,blonde',
+      mouth: 'smile',
+      skinColor: 'light,tan,dark',
+      top: 'shortHairShortFlat'
+    });
+    
+    return `https://api.dicebear.com/7.x/avataaars/svg?${params.toString()}`;
+  }
   
-  return `https://api.dicebear.com/7.x/avataaars/svg?${params.toString()}`;
+  // All other agents get line.png
+  return AGENT_AVATAR_URL;
 }

@@ -18,7 +18,7 @@ export default function TestHybridAvatars() {
     },
     {
       name: 'DiceBear Agent Avatar',
-      src: generateAgentAvatar('agent-123'),
+      src: generateAgentAvatar('agent-123', 'test@example.com', 'John Agent'),
       description: 'External DiceBear URL - should use regular img tag'
     },
     {
