@@ -5,6 +5,8 @@ import { motion } from 'framer-motion'
 import { Bed, Bath, MapPin, Heart, ArrowRight, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { PropertyImageWithWatermark } from '@/components/ui/PropertyImageWithWatermark'
+import { ResponsivePropertyImage } from '@/components/ui/ResponsivePropertyImage'
+import { AdaptivePropertyImage } from '@/components/ui/AdaptivePropertyImage'
 import { cn, formatPrice, formatPhoneNumber, capitalizeName, DEFAULT_AVATAR_URL } from '@/lib/utils'
 import { getPrimaryImageUrl } from '@/lib/imageUrlResolver'
 
@@ -120,7 +122,21 @@ export const PropertyRecommendations: React.FC<PropertyRecommendationsProps> = (
 
   // Helper function to get property image using resolver
   const getPropertyImage = (property: RecommendedProperty) => {
-    return getPrimaryImageUrl(property)
+    const imageUrl = getPrimaryImageUrl(property)
+    
+    // Debug logging for broken thumbnails
+    if (!imageUrl) {
+      console.warn('🔍 PropertyRecommendations: No image URL for property:', {
+        propertyId: property._id,
+        title: property.title,
+        thumbnailImage: property.thumbnailImage,
+        images: property.images,
+        hasThumbnail: !!property.thumbnailImage,
+        hasImages: !!(property.images && property.images.length > 0)
+      })
+    }
+    
+    return imageUrl
   }
 
   // Helper function to get property key
@@ -180,15 +196,30 @@ export const PropertyRecommendations: React.FC<PropertyRecommendationsProps> = (
                 onClick={() => onPropertyClick(property)}
               >
                 {/* Image Section */}
-                <div className="relative h-60 md:h-80 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-                  <PropertyImageWithWatermark
-                    src={getPropertyImage(property) || '/icons/placeholder.jpg'}
-                    alt={property.title}
-                    className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
-                    showWatermark={true}
-                    watermarkPosition="center"
-                    watermarkSize="medium"
-                  />
+                <div className="relative min-h-[240px] md:min-h-[320px] max-h-[400px] overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+                  {getPropertyImage(property) ? (
+                    <AdaptivePropertyImage
+                      property={property}
+                      alt={property.title}
+                      className="w-full h-full group-hover:scale-105 transition-transform duration-700"
+                      showWatermark={true}
+                      watermarkPosition="center"
+                      watermarkSize="medium"
+                      sizingMode="adaptive"
+                      onError={(error) => {
+                        console.warn('Property recommendation image error:', error)
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
+                      <div className="w-24 h-24 mb-4 rounded-full bg-gray-200 flex items-center justify-center">
+                        <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <p className="text-sm text-center px-4">No Image Available</p>
+                    </div>
+                  )}
                   
                   {/* Overlay Elements */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>

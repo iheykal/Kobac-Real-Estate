@@ -8,6 +8,8 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { PropertyImageWithWatermarkFixed } from '@/components/ui/PropertyImageWithWatermarkFixed'
+import { ResponsivePropertyImage } from '@/components/ui/ResponsivePropertyImage'
+import { AdaptivePropertyImage } from '@/components/ui/AdaptivePropertyImage'
 import { cn, formatPrice, formatPhoneNumber, capitalizeName, DEFAULT_AVATAR_URL } from '@/lib/utils'
 import { PropertyDetail } from '@/components/sections/PropertyDetail'
 import { useProperties } from '@/hooks/useProperties'
@@ -303,16 +305,21 @@ function PropertiesContent() {
                     {/* Image Section */}
                     <div className={cn(
                       "relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center",
-                      viewMode === 'grid' ? "h-60 md:h-80" : "h-48 w-64 flex-shrink-0"
+                      viewMode === 'grid' 
+                        ? "min-h-[240px] md:min-h-[320px] max-h-[400px]" 
+                        : "min-h-[192px] w-64 flex-shrink-0 max-h-[300px]"
                     )}>
-                      <PropertyImageWithWatermarkFixed
-                        src={getPropertyImage(property)}
+                      <AdaptivePropertyImage
+                        property={property}
                         alt={property.title}
-                        className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
+                        className="w-full h-full group-hover:scale-105 transition-transform duration-700"
                         showWatermark={true}
                         watermarkPosition="center"
                         watermarkSize="medium"
-                        property={property}
+                        sizingMode="adaptive"
+                        onError={(error) => {
+                          console.warn('Property image error:', error)
+                        }}
                       />
                       
                       {/* Overlay Elements */}

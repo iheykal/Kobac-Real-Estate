@@ -76,9 +76,24 @@ export async function convertToWebP(
         }
       } catch (validationError) {
         console.warn('WebP validation failed:', validationError);
+        
+        // Enhanced validation error logging
+        const validationDetails = {
+          validationError: validationError instanceof Error ? validationError.message : 'Unknown validation error',
+          webpBufferSize: webpBuffer.length,
+          originalFormat: metadata.format,
+          originalDimensions: `${metadata.width}x${metadata.height}`,
+          fallbackEnabled: fallbackToOriginal
+        };
+        
+        console.error('WebP validation error details:', validationDetails);
+        
         if (!fallbackToOriginal) {
           throw new Error('WebP validation failed and fallback is disabled');
         }
+        
+        console.warn(`Falling back to original image format due to WebP validation failure: ${validationDetails.validationError}`);
+        
         // Fallback to original buffer with original extension
         const originalExt = metadata.format || 'jpg';
         const timestamp = Date.now();
