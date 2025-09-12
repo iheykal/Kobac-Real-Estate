@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
           hasValidImage: !!primaryImageUrl,
           imageCount: property.images ? property.images.length : 0
         },
-        issues: []
+        issues: [] as string[]
       };
     });
 
