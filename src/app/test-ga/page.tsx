@@ -66,7 +66,7 @@ export default function TestGAPage() {
             </h2>
             <ul className="text-yellow-800 space-y-1">
               <li>• Make sure NEXT_PUBLIC_GA_ID environment variable is set</li>
-              <li>• Check that @next/third-parties package is installed</li>
+              <li>• Check that Google Analytics scripts are loading properly</li>
               <li>• Verify the GA ID matches your Google Analytics property</li>
               <li>• Wait up to 48 hours for data to appear in GA dashboard</li>
             </ul>
