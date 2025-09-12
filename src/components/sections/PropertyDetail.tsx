@@ -164,7 +164,6 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
     return urls;
   }, [property]);
   const [isFavorite, setIsFavorite] = useState(false)
-  const [imageAspectRatio, setImageAspectRatio] = useState<number>(4/5) // Default aspect ratio
   const [loadingAgentId, setLoadingAgentId] = useState<string | null>(null)
 
   // Function to get agent's first name
@@ -305,17 +304,6 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
     });
   }, [property, router, onClose]);
 
-
-  // Function to calculate and set image aspect ratio
-  const handleImageLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = event.currentTarget
-    const aspectRatio = img.naturalWidth / img.naturalHeight
-    setImageAspectRatio(aspectRatio)
-  }
-
-
-
-
   return (
     <div className="fixed inset-0 z-50 bg-white overflow-y-auto opacity-0 animate-fadeIn">
       <div className="min-h-screen flex flex-col">
@@ -443,7 +431,7 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                         </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+      </div>
+    </div>
   )
 }
