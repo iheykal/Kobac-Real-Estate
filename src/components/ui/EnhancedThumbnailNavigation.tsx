@@ -86,9 +86,9 @@ export default function EnhancedThumbnailNavigation({
                     ? 'border-blue-500 ring-2 ring-blue-300 shadow-lg scale-105' 
                     : 'border-transparent hover:border-gray-300 hover:scale-105 hover:shadow-md'
                 }`}
-                initial={enableAnimations ? { opacity: 0, scale: 0.8 } : false}
-                animate={enableAnimations ? { opacity: 1, scale: isActive ? 1.05 : 1 } : false}
-                exit={enableAnimations ? { opacity: 0, scale: 0.8 } : false}
+                initial={enableAnimations ? { opacity: 0, scale: 0.8 } : undefined}
+                animate={enableAnimations ? { opacity: 1, scale: isActive ? 1.05 : 1 } : undefined}
+                exit={enableAnimations ? { opacity: 0, scale: 0.8 } : undefined}
                 transition={enableAnimations ? { duration: 0.2, delay: index * 0.05 } : {}}
                 whileHover={enableAnimations ? { scale: 1.05 } : {}}
                 whileTap={enableAnimations ? { scale: 0.95 } : {}}
