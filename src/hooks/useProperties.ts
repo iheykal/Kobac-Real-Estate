@@ -16,6 +16,7 @@ export interface Property {
   propertyType: string;
   status: string;
   listingType?: string;
+  documentType?: string;
   description: string;
   features: string[];
   amenities: string[];
