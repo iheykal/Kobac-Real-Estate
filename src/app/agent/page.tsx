@@ -433,6 +433,17 @@ export default function AgentDashboard() {
         body: JSON.stringify(propertyPayload)
       })
       
+      console.log('🔍 Property creation response status:', createResponse.status)
+      console.log('🔍 Property creation response headers:', Object.fromEntries(createResponse.headers.entries()))
+      
+      // Check if response is JSON
+      const contentType = createResponse.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await createResponse.text()
+        console.error('❌ Non-JSON response received:', textResponse.substring(0, 500))
+        throw new Error(`Server returned non-JSON response: ${createResponse.status}`)
+      }
+      
       const createResult = await createResponse.json()
       console.log('🔍 Property creation response:', {
         status: createResponse.status,
