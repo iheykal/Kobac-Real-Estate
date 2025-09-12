@@ -74,7 +74,7 @@ export default function EnhancedThumbnailNavigation({
       {/* Thumbnail Container */}
       <div className={`${currentLayout} ${currentSize.gap} p-2`}>
         <AnimatePresence>
-          {allImageUrls.map((imageUrl, index) => {
+          {allImageUrls.map((imageUrl: string, index: number) => {
             const isActive = index === selectedImage;
             
             return (
