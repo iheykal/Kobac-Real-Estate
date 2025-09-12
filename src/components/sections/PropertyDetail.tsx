@@ -122,6 +122,7 @@ interface PropertyDetailProps {
     propertyType: string
     status: string
     description: string
+    documentType?: string
     measurement?: string
     features: string[]
     amenities: string[]
@@ -377,8 +378,8 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                 <div 
                   className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center"
                   style={{ 
-                    minHeight: '300px',
-                    maxHeight: '80vh',
+                    minHeight: '250px',
+                    maxHeight: '60vh',
                     width: '100%'
                   }}
                   onTouchStart={onTouchStart}
@@ -398,7 +399,7 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                           key="fallback"
                           src={getPrimaryImageUrl(property) || ''}
                           alt={property.title}
-                          className="w-full h-full max-h-[80vh] object-contain"
+                          className="w-full h-full object-contain md:object-cover"
                           showWatermark={true}
                           watermarkPosition="center"
                           watermarkSize="large"
@@ -417,7 +418,7 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                           key={`main-${validIndex}`}
                           src={selectedImageUrl}
                           alt={`${property.title} - Image ${validIndex + 1}`}
-                          className="w-full h-full max-h-[80vh] object-contain"
+                          className="w-full h-full object-contain md:object-cover"
                           showWatermark={validIndex === 0} // Only show watermark on first image
                           watermarkPosition="center"
                           watermarkSize="large"
@@ -617,33 +618,17 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                 </div>
 
                 {/* Key Stats */}
-                <div className={`grid gap-4 ${property.status === 'For Sale' ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                  <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-                    <div className="w-16 h-16 flex items-center justify-center mx-auto mb-2">
-                      <img 
-                        src="/icons/bed.png" 
-                        alt="Bed" 
-                        className="w-10 h-10 object-contain"
-                      />
+                <div className={`grid gap-4 ${property.status === 'For Sale' ? 'grid-cols-2' : 'grid-cols-2'}`}>
+                  {/* Document Type - Show for all properties */}
+                  {property.documentType && (
+                    <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
+                      <div className="w-16 h-16 flex items-center justify-center mx-auto mb-2">
+                        <Award className="w-8 h-8 text-purple-600" />
+                      </div>
+                      <div className="text-lg font-bold text-slate-900">{property.documentType}</div>
+                      <div className="text-sm text-slate-600">Sharciga</div>
                     </div>
-                    <div className="text-xl font-bold text-slate-900">{property.beds}</div>
-                    <div className="text-sm text-slate-600">Qol</div>
-                  </div>
-                  <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-                    <div className="w-20 h-20 flex items-center justify-center mx-auto mb-2">
-                      <video 
-                        src="/icons/shower1.mp4" 
-                        autoPlay 
-                        loop 
-                        muted 
-                        playsInline
-                        className="w-12 h-12 object-contain mix-blend-multiply"
-                        style={{ filter: 'contrast(1.2) brightness(1.1)' }}
-                      />
-                    </div>
-                    <div className="text-xl font-bold text-slate-900">{property.baths}</div>
-                    <div className="text-sm text-slate-600">Suuli</div>
-                  </div>
+                  )}
                   
                   {/* Measurement - Only show for properties for sale */}
                   {property.status === 'For Sale' && (
@@ -659,6 +644,38 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                       <div className="text-xl font-bold text-slate-900">{property.measurement || 'N/A'}</div>
                       <div className="text-sm text-slate-600">Cabbirka</div>
                     </div>
+                  )}
+                  
+                  {/* Beds and Baths - Only show for rent properties */}
+                  {property.status === 'For Rent' && (
+                    <>
+                      <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+                        <div className="w-16 h-16 flex items-center justify-center mx-auto mb-2">
+                          <img 
+                            src="/icons/bed.png" 
+                            alt="Bed" 
+                            className="w-10 h-10 object-contain"
+                          />
+                        </div>
+                        <div className="text-xl font-bold text-slate-900">{property.beds}</div>
+                        <div className="text-sm text-slate-600">Qol</div>
+                      </div>
+                      <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+                        <div className="w-20 h-20 flex items-center justify-center mx-auto mb-2">
+                          <video 
+                            src="/icons/shower1.mp4" 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline
+                            className="w-12 h-12 object-contain mix-blend-multiply"
+                            style={{ filter: 'contrast(1.2) brightness(1.1)' }}
+                          />
+                        </div>
+                        <div className="text-xl font-bold text-slate-900">{property.baths}</div>
+                        <div className="text-sm text-slate-600">Suuli</div>
+                      </div>
+                    </>
                   )}
                 </div>
 

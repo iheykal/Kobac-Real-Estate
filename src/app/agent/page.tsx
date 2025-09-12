@@ -31,6 +31,7 @@ interface Property {
   title: string
   propertyType: string
   listingType: string
+  documentType?: string
   measurement?: string
   status: string
   description: string
@@ -82,6 +83,7 @@ export default function AgentDashboard() {
     title: '',
     propertyType: 'villa',
     listingType: 'sale',
+    documentType: '',
     measurement: '',
     description: '',
     price: '',
@@ -404,6 +406,7 @@ export default function AgentDashboard() {
         title: propertyData.title || propertyData.propertyType,
         propertyType: propertyData.propertyType,
         listingType: propertyData.listingType,
+        documentType: propertyData.documentType || null,
         status: propertyData.listingType === 'sale' ? 'For Sale' : 'For Rent',
         measurement: propertyData.measurement,
         description: propertyData.description,
@@ -1389,6 +1392,19 @@ export default function AgentDashboard() {
                     <option value="rent">Kiro (Rent)</option>
                   </select>
                 </div>
+                
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-800 mb-3">Sharciga (Document Type)</label>
+                  <select
+                    value={propertyData.documentType}
+                    onChange={(e) => setPropertyData(prev => ({ ...prev, documentType: e.target.value }))}
+                    className="w-full px-4 py-4 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-white hover:border-gray-300"
+                  >
+                    <option value="">Select document type</option>
+                    <option value="Siyaad Barre">Siyaad Barre</option>
+                    <option value="Fedaraal">Fedaraal</option>
+                  </select>
+                </div>
                 {propertyData.listingType === 'sale' && (
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-800 mb-3">Cabirka (Measurement) *</label>
@@ -1476,27 +1492,31 @@ export default function AgentDashboard() {
                   </select>
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-800 mb-3">Bedrooms</label>
-                  <input
-                    type="number"
-                    value={propertyData.bedrooms}
-                    onChange={(e) => setPropertyData(prev => ({ ...prev, bedrooms: e.target.value }))}
-                    className="w-full px-4 py-4 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-white hover:border-gray-300"
-                    placeholder="Number of bedrooms"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-800 mb-3">Bathrooms</label>
-                  <input
-                    type="number"
-                    value={propertyData.bathrooms}
-                    onChange={(e) => setPropertyData(prev => ({ ...prev, bathrooms: e.target.value }))}
-                    className="w-full px-4 py-4 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-white hover:border-gray-300"
-                    placeholder="Number of bathrooms"
-                  />
-                </div>
+                {propertyData.listingType === 'rent' && (
+                  <>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-800 mb-3">Qol (Bedrooms)</label>
+                      <input
+                        type="number"
+                        value={propertyData.bedrooms}
+                        onChange={(e) => setPropertyData(prev => ({ ...prev, bedrooms: e.target.value }))}
+                        className="w-full px-4 py-4 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-white hover:border-gray-300"
+                        placeholder="Number of bedrooms"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-800 mb-3">Suuli (Bathrooms)</label>
+                      <input
+                        type="number"
+                        value={propertyData.bathrooms}
+                        onChange={(e) => setPropertyData(prev => ({ ...prev, bathrooms: e.target.value }))}
+                        className="w-full px-4 py-4 border-2 border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-white hover:border-gray-300"
+                        placeholder="Number of bathrooms"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
               
               <div className="mt-8">

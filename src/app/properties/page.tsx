@@ -386,35 +386,19 @@ function PropertiesContent() {
                       </div>
 
                       {/* Stats Grid */}
-                      <div className={`grid gap-4 md:gap-6 mb-6 md:mb-8 ${property.status === 'For Sale' ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                        {/* Bedrooms */}
-                        <div className="text-center group/stat">
-                          <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
-                            <img 
-                              src="/icons/bed.png" 
-                              alt="Bed" 
-                              className="w-7 h-7 md:w-9 md:h-9 object-contain"
-                            />
+                      <div className={`grid gap-4 md:gap-6 mb-6 md:mb-8 ${property.status === 'For Sale' ? 'grid-cols-2' : 'grid-cols-2'}`}>
+                        {/* Document Type - Show for all properties */}
+                        {property.documentType && (
+                          <div className="text-center group/stat">
+                            <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
+                              <div className="w-7 h-7 md:w-9 md:h-9 bg-purple-600 rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs md:text-sm font-bold">S</span>
+                              </div>
+                            </div>
+                            <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.documentType}</div>
+                            <div className="text-slate-600 text-xs md:text-sm font-medium">Sharciga</div>
                           </div>
-                          <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.beds}</div>
-                          <div className="text-slate-600 text-xs md:text-sm font-medium">Qol</div>
-                        </div>
-                        
-                        {/* Bathrooms */}
-                        <div className="text-center group/stat">
-                          <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
-                            <video 
-                              src="/icons/shower1.mp4" 
-                              autoPlay 
-                              loop 
-                              muted 
-                              playsInline
-                              className="w-9 h-9 md:w-11 md:h-11 object-contain"
-                            />
-                          </div>
-                          <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.baths}</div>
-                          <div className="text-slate-600 text-xs md:text-sm font-medium">Suuli</div>
-                        </div>
+                        )}
 
                         {/* Measurement - Only show for properties for sale */}
                         {property.status === 'For Sale' && (
@@ -429,6 +413,38 @@ function PropertiesContent() {
                             <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{(property as any).measurement || 'N/A'}</div>
                             <div className="text-slate-600 text-xs md:text-sm font-medium">Cabbirka</div>
                           </div>
+                        )}
+
+                        {/* Beds and Baths - Only show for rent properties */}
+                        {property.status === 'For Rent' && (
+                          <>
+                            <div className="text-center group/stat">
+                              <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
+                                <img 
+                                  src="/icons/bed.png" 
+                                  alt="Bed" 
+                                  className="w-7 h-7 md:w-9 md:h-9 object-contain"
+                                />
+                              </div>
+                              <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.beds}</div>
+                              <div className="text-slate-600 text-xs md:text-sm font-medium">Qol</div>
+                            </div>
+                            
+                            <div className="text-center group/stat">
+                              <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
+                                <video 
+                                  src="/icons/shower1.mp4" 
+                                  autoPlay 
+                                  loop 
+                                  muted 
+                                  playsInline
+                                  className="w-9 h-9 md:w-11 md:h-11 object-contain"
+                                />
+                              </div>
+                              <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.baths}</div>
+                              <div className="text-slate-600 text-xs md:text-sm font-medium">Suuli</div>
+                            </div>
+                          </>
                         )}
                       </div>
 

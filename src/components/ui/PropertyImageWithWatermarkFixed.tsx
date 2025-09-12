@@ -64,7 +64,7 @@ export const PropertyImageWithWatermarkFixed: React.FC<PropertyImageWithWatermar
         <motion.img
           src={src}
           alt={alt}
-          className="w-full h-full object-cover object-center"
+          className="w-full h-full object-contain md:object-cover object-center"
           style={{
             imageRendering: 'auto',
             backfaceVisibility: 'hidden',

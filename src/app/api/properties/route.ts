@@ -480,7 +480,7 @@ export async function POST(request: NextRequest) {
     // Sanitize and prepare property data
     const allowedFields = [
       'title', 'location', 'district', 'price', 'bedrooms', 'beds', 'bathrooms', 'baths',
-      'area', 'sqft', 'yearBuilt', 'lotSize', 'propertyType', 'listingType', 'measurement',
+      'area', 'sqft', 'yearBuilt', 'lotSize', 'propertyType', 'listingType', 'documentType', 'measurement',
       'status', 'description', 'features', 'amenities', 'thumbnailImage', 'additionalImages'
     ];
     
@@ -500,6 +500,7 @@ export async function POST(request: NextRequest) {
       lotSize: parseInt(sanitizedData.lotSize) || 1000,
       propertyType: sanitizedData.propertyType || 'villa',
       listingType: listingType,
+      documentType: sanitizedData.documentType || null,
       measurement: sanitizedData.measurement || undefined,
       status: sanitizedData.status || (listingType === 'rent' ? 'For Rent' : 'For Sale'),
       description: sanitizedData.description,

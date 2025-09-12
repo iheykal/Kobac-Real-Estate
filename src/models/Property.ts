@@ -151,6 +151,12 @@ const PropertySchema: Schema = new Schema({
     required: true,
     enum: ['sale', 'rent']
   },
+  documentType: {
+    type: String,
+    required: false,
+    enum: ['Siyaad Barre', 'Fedaraal'],
+    default: null
+  },
   measurement: {
     type: String,
     required: false,

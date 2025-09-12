@@ -75,7 +75,7 @@ export default function PropertyImage({
               setIsLoading(false);
             }}
             onLoad={() => setIsLoading(false)}
-            className={`w-full h-full object-cover object-center transition-opacity duration-300 ${
+            className={`w-full h-full object-contain md:object-cover object-center transition-opacity duration-300 ${
               isLoading ? 'opacity-0' : 'opacity-100'
             }`}
           />
@@ -131,7 +131,7 @@ export default function PropertyImage({
         sizes={sizes}
         onError={handleImageError}
         onLoad={handleImageLoad}
-        className={`w-full h-full object-cover object-center transition-opacity duration-300 ${
+        className={`w-full h-full object-contain md:object-cover object-center transition-opacity duration-300 ${
           isLoading ? 'opacity-0' : 'opacity-100'
         }`}
       />
