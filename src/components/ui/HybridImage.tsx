@@ -17,6 +17,7 @@ interface HybridImageProps {
   width?: number
   height?: number
   className?: string
+  style?: React.CSSProperties
   fallbackSrc?: string
 }
 
@@ -26,6 +27,7 @@ export default function HybridImage({
   width = 400, 
   height = 400, 
   className = '',
+  style,
   fallbackSrc = DEFAULT_AVATAR_URL
 }: HybridImageProps) {
   const [imgSrc, setImgSrc] = useState(src)
@@ -47,6 +49,7 @@ export default function HybridImage({
         width={width}
         height={height}
         className={className}
+        style={style}
         onError={handleError}
       />
     )
@@ -60,6 +63,7 @@ export default function HybridImage({
       width={width}
       height={height}
       className={className}
+      style={style}
       onError={handleError}
     />
   )

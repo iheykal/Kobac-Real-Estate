@@ -53,6 +53,7 @@ export const Header: React.FC = () => {
                   width={96}
                   height={96}
                   className="w-full h-full object-contain"
+                  style={{ width: 'auto', height: 'auto' }}
                 />
               </div>
               <div className="hidden sm:block">

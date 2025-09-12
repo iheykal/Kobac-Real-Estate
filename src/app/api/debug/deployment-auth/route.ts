@@ -63,7 +63,14 @@ export async function GET(request: NextRequest) {
     
     console.log('📋 Request headers:', headers);
     
-    const debugInfo = {
+    const debugInfo: {
+      timestamp: string;
+      environment: any;
+      cookies: any;
+      session: any;
+      headers: any;
+      recommendations: string[];
+    } = {
       timestamp: new Date().toISOString(),
       environment: envInfo,
       cookies: {
@@ -77,7 +84,7 @@ export async function GET(request: NextRequest) {
         alt: altSessionData ? { userId: altSessionData.userId, role: altSessionData.role } : null
       },
       headers: headers,
-      recommendations: [] as string[]
+      recommendations: []
     };
     
     // Add recommendations based on findings
