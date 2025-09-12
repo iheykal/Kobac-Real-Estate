@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { DEFAULT_AVATAR_URL } from '@/lib/utils'
 import { getPrimaryImageUrl, getAllImageUrls } from '@/lib/imageUrlResolver'
+import EnhancedImageGallery from '@/components/ui/EnhancedImageGallery'
 
 interface Property {
   _id: string
@@ -263,94 +264,22 @@ export default function PropertySearch() {
           >
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
               
-              {/* Left Side - Property Images */}
+              {/* Left Side - Enhanced Property Images */}
               <div className="space-y-6">
-                {/* Main Image */}
-                <div 
-                  className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100"
-                  style={{ aspectRatio: imageAspectRatio }}
-                  onTouchStart={onTouchStart}
-                  onTouchMove={onTouchMove}
-                  onTouchEnd={onTouchEnd}
-                >
-                  <motion.img
-                    key={selectedImage}
-                    src={(() => {
-                      const allImages = getAllImageUrls(property);
-                      return allImages[selectedImage] || getPrimaryImageUrl(property) || '/icons/placeholder.jpg';
-                    })()}
-                    alt={property.title}
-                    className="w-full h-full object-cover"
-                    initial={{ opacity: 0, scale: 1.1 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    onLoad={handleImageLoad}
-                  />
-                  
-                  {/* Image Navigation Arrows */}
-                  {(() => {
-                    const totalImages = getAllImageUrls(property).length;
-                    return totalImages > 1 ? (
-                      <>
-                        <button
-                          onClick={() => handleImageChange(selectedImage > 0 ? selectedImage - 1 : totalImages - 1)}
-                          className="absolute left-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-transparent text-white hover:bg-white/20 hover:scale-110 transition-all shadow-lg"
-                        >
-                          <ArrowLeft className="w-6 h-6" />
-                        </button>
-                        
-                        <button
-                          onClick={() => handleImageChange(selectedImage < totalImages - 1 ? selectedImage + 1 : 0)}
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-transparent text-white hover:bg-white/20 hover:scale-110 transition-all shadow-lg"
-                        >
-                          <ArrowRight className="w-6 h-6" />
-                        </button>
-                      </>
-                    ) : null;
-                  })()}
-                  
-                  {/* Image Navigation Dots */}
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                    <div className="flex space-x-2">
-                      {(() => {
-                        const totalImages = getAllImageUrls(property).length;
-                        return Array.from({ length: totalImages }, (_, index) => (
-                          <button
-                            key={index}
-                            onClick={() => handleImageChange(index)}
-                            className={`w-3 h-3 rounded-full transition-all ${
-                              index === selectedImage 
-                                ? 'bg-blue-500 scale-125' 
-                                : 'bg-white/70 hover:bg-blue-300'
-                            }`}
-                          />
-                        ));
-                      })()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Thumbnail Images */}
-                <div className="grid grid-cols-6 gap-2">
-                  {getAllImageUrls(property).map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleImageChange(index)}
-                      className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                        index === selectedImage 
-                          ? 'border-blue-500' 
-                          : 'border-transparent hover:border-blue-300'
-                      }`}
-                    >
-                      <img
-                        src={image}
-                        alt={`${property.title} - Image ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
+                <EnhancedImageGallery
+                  property={property}
+                  className="w-full"
+                  showThumbnails={true}
+                  showNavigation={true}
+                  showWatermark={true}
+                  watermarkPosition="center"
+                  watermarkSize="large"
+                  thumbnailSize="medium"
+                  thumbnailLayout="grid"
+                  enableTouchGestures={true}
+                  enableKeyboardNavigation={true}
+                  maintainAspectRatio={true}
+                />
               </div>
 
               {/* Right Side - Property Details */}

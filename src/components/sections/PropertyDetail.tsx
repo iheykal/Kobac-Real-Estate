@@ -25,6 +25,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import { PropertyImageWithWatermarkFixed } from '@/components/ui/PropertyImageWithWatermarkFixed'
+import EnhancedImageGallery from '@/components/ui/EnhancedImageGallery'
 import { PropertyRecommendations } from './PropertyRecommendations'
 import { formatPrice, formatPhoneNumber, formatListingDate, capitalizeName, DEFAULT_AVATAR_URL } from '@/lib/utils'
 import { getPrimaryImageUrl, getAllImageUrls } from '@/lib/imageUrlResolver'
@@ -372,27 +373,24 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               
-              {/* Left Side - Property Images */}
+              {/* Left Side - Enhanced Property Images */}
               <div className="space-y-6">
-                {/* Main Image */}
-                <div 
-                  className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4"
-                  style={{ 
-                    minHeight: '300px',
-                    maxHeight: '70vh',
-                    width: '100%'
-                  }}
-                  onTouchStart={onTouchStart}
-                  onTouchMove={onTouchMove}
-                  onTouchEnd={onTouchEnd}
-                >
-                  {(() => {
-                    // Get all valid images using the resolver, filtering out Uze logos
-                    const allImages = getAllImageUrls(property).filter(img => 
-                      !img.includes('uze.png') && !img.includes('/icons/')
-                    );
-                    
-                    // Ensure we have valid images and selectedImage is within bounds
+                <EnhancedImageGallery
+                  property={property}
+                  className="w-full"
+                  showThumbnails={true}
+                  showNavigation={true}
+                  showWatermark={true}
+                  watermarkPosition="center"
+                  watermarkSize="large"
+                  thumbnailSize="medium"
+                  thumbnailLayout="flexible"
+                  enableTouchGestures={true}
+                  enableKeyboardNavigation={true}
+                  maintainAspectRatio={true}
+                />
+              </div>
+              {/* Right Side - Property Details */}
                     if (allImages.length === 0) {
                       return (
                         <PropertyImageWithWatermarkFixed

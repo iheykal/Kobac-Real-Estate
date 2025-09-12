@@ -437,32 +437,32 @@ function PropertiesContent() {
                         {/* Beds and Baths - Only show for rent properties with valid values */}
                         {property.status === 'For Rent' && property.beds > 0 && property.baths > 0 && (
                           <>
-                            <div className="text-center group/stat">
-                              <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
-                                <img 
-                                  src="/icons/bed.png" 
-                                  alt="Bed" 
-                                  className="w-7 h-7 md:w-9 md:h-9 object-contain"
-                                />
-                              </div>
-                              <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.beds}</div>
-                              <div className="text-slate-600 text-xs md:text-sm font-medium">Qol</div>
-                            </div>
-                            
-                            <div className="text-center group/stat">
-                              <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
-                                <video 
-                                  src="/icons/shower1.mp4" 
-                                  autoPlay 
-                                  loop 
-                                  muted 
-                                  playsInline
-                                  className="w-9 h-9 md:w-11 md:h-11 object-contain"
-                                />
-                              </div>
-                              <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.baths}</div>
-                              <div className="text-slate-600 text-xs md:text-sm font-medium">Suuli</div>
-                            </div>
+                        <div className="text-center group/stat">
+                          <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
+                            <img 
+                              src="/icons/bed.png" 
+                              alt="Bed" 
+                              className="w-7 h-7 md:w-9 md:h-9 object-contain"
+                            />
+                          </div>
+                          <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.beds}</div>
+                          <div className="text-slate-600 text-xs md:text-sm font-medium">Qol</div>
+                        </div>
+                        
+                        <div className="text-center group/stat">
+                          <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
+                            <video 
+                              src="/icons/shower1.mp4" 
+                              autoPlay 
+                              loop 
+                              muted 
+                              playsInline
+                              className="w-9 h-9 md:w-11 md:h-11 object-contain"
+                            />
+                          </div>
+                          <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.baths}</div>
+                          <div className="text-slate-600 text-xs md:text-sm font-medium">Suuli</div>
+                        </div>
                           </>
                         )}
                       </div>
