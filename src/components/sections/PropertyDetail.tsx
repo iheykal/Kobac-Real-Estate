@@ -376,10 +376,10 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
               <div className="space-y-6">
                 {/* Main Image */}
                 <div 
-                  className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center"
+                  className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4"
                   style={{ 
-                    minHeight: '200px',
-                    maxHeight: '50vh',
+                    minHeight: '300px',
+                    maxHeight: '70vh',
                     width: '100%'
                   }}
                   onTouchStart={onTouchStart}
@@ -413,12 +413,19 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                     const selectedImageUrl = allImages[validIndex];
                     
                     return (
-                      <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-full h-full flex items-center justify-center p-2">
                         <PropertyImageWithWatermarkFixed
                           key={`main-${validIndex}`}
                           src={selectedImageUrl}
                           alt={`${property.title} - Image ${validIndex + 1}`}
-                          className="w-full h-full object-cover"
+                          className="max-w-full max-h-full"
+                          style={{
+                            width: 'auto',
+                            height: 'auto',
+                            maxWidth: '100%',
+                            maxHeight: '100%',
+                            objectFit: 'contain'
+                          }}
                           showWatermark={validIndex === 0} // Only show watermark on first image
                           watermarkPosition="center"
                           watermarkSize="large"
@@ -556,25 +563,43 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                   }
                   
                   return (
-                    <div className="grid grid-cols-6 gap-2">
-                      {uniqueImages.map((image, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleImageChange(index + 1)} // +1 because index 0 is the main thumbnail
-                          className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                            index + 1 === selectedImage 
-                              ? 'border-blue-500 scale-105 shadow-md' 
-                              : 'border-transparent hover:border-gray-300 hover:scale-105'}`}
-                        >
-                          <PropertyImageWithWatermarkFixed
-                            property={property}
-                            index={index + 1}
-                            className="w-full h-full object-contain"
-                            alt={`${property.title} - Thumbnail ${index + 1}`}
-                            showWatermark={false}
-                          />
-                        </button>
-                      ))}
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {uniqueImages.map((image, index) => {
+                        const isActive = index + 1 === selectedImage;
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => handleImageChange(index + 1)} // +1 because index 0 is the main thumbnail
+                            className={`flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
+                              isActive 
+                                ? 'border-blue-500 ring-2 ring-blue-300 scale-105 shadow-md' 
+                                : 'border-transparent hover:border-gray-300 hover:scale-105'
+                            }`}
+                            style={{
+                              width: '64px',
+                              height: '64px',
+                              opacity: isActive ? 1 : 0.9,
+                            }}
+                          >
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                              <PropertyImageWithWatermarkFixed
+                                property={property}
+                                index={index + 1}
+                                className="max-w-full max-h-full"
+                                style={{
+                                  width: 'auto',
+                                  height: 'auto',
+                                  maxWidth: '100%',
+                                  maxHeight: '100%',
+                                  objectFit: 'contain'
+                                }}
+                                alt={`${property.title} - Thumbnail ${index + 1}`}
+                                showWatermark={false}
+                              />
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   );
                 })()}

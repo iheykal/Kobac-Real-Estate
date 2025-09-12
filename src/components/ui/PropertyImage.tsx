@@ -75,7 +75,7 @@ export default function PropertyImage({
               setIsLoading(false);
             }}
             onLoad={() => setIsLoading(false)}
-            className={`w-full h-full object-cover object-center transition-opacity duration-300 ${
+            className={`max-w-full max-h-full w-auto h-auto object-contain transition-opacity duration-300 ${
               isLoading ? 'opacity-0' : 'opacity-100'
             }`}
           />
@@ -85,10 +85,14 @@ export default function PropertyImage({
     
     return (
       <div 
-        className={`bg-gray-200 flex items-center justify-center ${className}`}
+        className={`bg-gray-200 flex items-center justify-center ${className} w-full`}
         role="img"
         aria-label={alt || property.title || 'Property image not available'}
-      />
+      >
+        <div className="text-gray-500 text-sm text-center p-4">
+          {alt || property.title || 'Image not available'}
+        </div>
+      </div>
     );
   }
 

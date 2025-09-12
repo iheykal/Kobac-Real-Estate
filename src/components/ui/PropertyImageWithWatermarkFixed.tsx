@@ -47,7 +47,7 @@ export const PropertyImageWithWatermarkFixed: React.FC<PropertyImageWithWatermar
   }
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
+    <div className={`relative ${className} flex items-center justify-center w-full h-full`} style={{ minHeight: '200px' }}>
       {/* Main Property Image */}
       {property ? (
         <PropertyImage
@@ -94,12 +94,12 @@ export const PropertyImageWithWatermarkFixed: React.FC<PropertyImageWithWatermar
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, delay: 0.1 }}
         >
-          <div className={`${watermarkSizeClasses[watermarkSize]} relative`}>
+          <div className={`${watermarkSizeClasses[watermarkSize]} relative opacity-70`}>
             {/* Company Logo */}
             <img
               src="/icons/header.png"
               alt="Kobac Company Logo"
-              className="w-full h-full object-contain"
+              className="max-w-full max-h-full w-auto h-auto object-contain"
               style={{
                 opacity: 0.7,
                 filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8)) brightness(1.3) contrast(1.2)'
