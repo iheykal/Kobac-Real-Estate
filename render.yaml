@@ -25,5 +25,7 @@ services:
         sync: false
       - key: NEXTAUTH_URL
         sync: false
+      - key: NEXT_PUBLIC_GA_ID
+        sync: false
       - key: PORT
         value: "3000"

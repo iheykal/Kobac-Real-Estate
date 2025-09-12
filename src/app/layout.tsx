@@ -6,6 +6,7 @@ import { Footer } from '@/components/layout/Footer'
 import { UserProvider } from '@/contexts/UserContext'
 import { ScrollToTopProvider } from '@/components/providers/ScrollToTopProvider'
 import { ScrollToTopButton } from '@/components/ui/ScrollToTopButton'
+import GoogleAnalyticsComponent from '@/components/analytics/GoogleAnalytics'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -47,6 +48,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID
+
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} ${cormorant.variable}`}>
       <body className="font-sans antialiased bg-white text-primary-900">
@@ -60,6 +63,7 @@ export default function RootLayout({
             <ScrollToTopButton />
           </ScrollToTopProvider>
         </UserProvider>
+        {gaId && <GoogleAnalyticsComponent gaId={gaId} />}
       </body>
     </html>
   )
