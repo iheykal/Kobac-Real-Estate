@@ -387,36 +387,55 @@ function PropertiesContent() {
 
                       {/* Stats Grid */}
                       <div className={`grid gap-4 md:gap-6 mb-6 md:mb-8 ${property.status === 'For Sale' ? 'grid-cols-2' : 'grid-cols-2'}`}>
-                        {/* Document Type - Show for all properties */}
-                        {property.documentType && (
-                          <div className="text-center group/stat">
-                            <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
-                              <div className="w-7 h-7 md:w-9 md:h-9 bg-purple-600 rounded-full flex items-center justify-center">
-                                <span className="text-white text-xs md:text-sm font-bold">S</span>
-                              </div>
-                            </div>
-                            <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.documentType}</div>
-                            <div className="text-slate-600 text-xs md:text-sm font-medium">Sharciga</div>
-                          </div>
-                        )}
-
-                        {/* Measurement - Only show for properties for sale */}
+                        {/* For Sale Properties: Show Measurement and Document Type */}
                         {property.status === 'For Sale' && (
-                          <div className="text-center group/stat">
-                            <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
-                              <img 
-                                src="/icons/ruler.gif" 
-                                alt="Measurement" 
-                                className="w-7 h-7 md:w-9 md:h-9 object-contain"
-                              />
+                          <>
+                            {/* Measurement - Always show for sale properties */}
+                            <div className="text-center group/stat">
+                              <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
+                                <img 
+                                  src="/icons/ruler.gif" 
+                                  alt="Measurement" 
+                                  className="w-7 h-7 md:w-9 md:h-9 object-contain"
+                                />
+                              </div>
+                              <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{(property as any).measurement || 'N/A'}</div>
+                              <div className="text-slate-600 text-xs md:text-sm font-medium">Cabbirka</div>
                             </div>
-                            <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{(property as any).measurement || 'N/A'}</div>
-                            <div className="text-slate-600 text-xs md:text-sm font-medium">Cabbirka</div>
-                          </div>
+
+                            {/* Document Type - Show if available, otherwise show placeholder */}
+                            <div className="text-center group/stat">
+                              <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
+                                <div className="w-7 h-7 md:w-9 md:h-9 bg-purple-600 rounded-full flex items-center justify-center">
+                                  <span className="text-white text-xs md:text-sm font-bold">S</span>
+                                </div>
+                              </div>
+                              <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.documentType || 'N/A'}</div>
+                              <div className="text-slate-600 text-xs md:text-sm font-medium">Sharciga</div>
+                            </div>
+                          </>
                         )}
 
-                        {/* Beds and Baths - Only show for rent properties */}
+                        {/* For Rent Properties: Show Document Type and Beds/Baths */}
                         {property.status === 'For Rent' && (
+                          <>
+                            {/* Document Type - Show if available */}
+                            {property.documentType && (
+                              <div className="text-center group/stat">
+                                <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">
+                                  <div className="w-7 h-7 md:w-9 md:h-9 bg-purple-600 rounded-full flex items-center justify-center">
+                                    <span className="text-white text-xs md:text-sm font-bold">S</span>
+                                  </div>
+                                </div>
+                                <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.documentType}</div>
+                                <div className="text-slate-600 text-xs md:text-sm font-medium">Sharciga</div>
+                              </div>
+                            )}
+                          </>
+                        )}
+
+                        {/* Beds and Baths - Only show for rent properties with valid values */}
+                        {property.status === 'For Rent' && property.beds > 0 && property.baths > 0 && (
                           <>
                             <div className="text-center group/stat">
                               <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">

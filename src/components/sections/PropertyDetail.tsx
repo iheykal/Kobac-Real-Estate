@@ -378,8 +378,8 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                 <div 
                   className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center"
                   style={{ 
-                    minHeight: '250px',
-                    maxHeight: '60vh',
+                    minHeight: '200px',
+                    maxHeight: '50vh',
                     width: '100%'
                   }}
                   onTouchStart={onTouchStart}
@@ -399,7 +399,7 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                           key="fallback"
                           src={getPrimaryImageUrl(property) || ''}
                           alt={property.title}
-                          className="w-full h-full object-contain md:object-cover"
+                          className="w-full h-full object-cover"
                           showWatermark={true}
                           watermarkPosition="center"
                           watermarkSize="large"
@@ -418,7 +418,7 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                           key={`main-${validIndex}`}
                           src={selectedImageUrl}
                           alt={`${property.title} - Image ${validIndex + 1}`}
-                          className="w-full h-full object-contain md:object-cover"
+                          className="w-full h-full object-cover"
                           showWatermark={validIndex === 0} // Only show watermark on first image
                           watermarkPosition="center"
                           watermarkSize="large"
@@ -646,8 +646,8 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                     </div>
                   )}
                   
-                  {/* Beds and Baths - Only show for rent properties */}
-                  {property.status === 'For Rent' && (
+                  {/* Beds and Baths - Only show for rent properties with valid values */}
+                  {property.status === 'For Rent' && property.beds > 0 && property.baths > 0 && (
                     <>
                       <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
                         <div className="w-16 h-16 flex items-center justify-center mx-auto mb-2">

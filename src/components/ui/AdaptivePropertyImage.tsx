@@ -82,6 +82,11 @@ export const AdaptivePropertyImage: React.FC<AdaptivePropertyImageProps> = ({
     if (sizingMode === 'contain') return 'object-contain'
     if (sizingMode === 'cover') return 'object-cover'
     
+    // For mobile, always use cover for better card appearance
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return 'object-cover'
+    }
+    
     // Adaptive mode: choose based on aspect ratios
     if (imageAspectRatio && containerAspectRatio) {
       // If image is much wider than container, use cover to fill
@@ -96,8 +101,8 @@ export const AdaptivePropertyImage: React.FC<AdaptivePropertyImageProps> = ({
       return 'object-contain'
     }
     
-    // Default to contain for better full image display
-    return 'object-contain'
+    // Default to cover for better card appearance
+    return 'object-cover'
   }
 
   // If image failed to load, show placeholder
