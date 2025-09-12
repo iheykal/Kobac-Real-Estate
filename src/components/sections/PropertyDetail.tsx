@@ -164,8 +164,6 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
     return urls;
   }, [property]);
   const [isFavorite, setIsFavorite] = useState(false)
-  const [touchStart, setTouchStart] = useState<number | null>(null)
-  const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const [imageAspectRatio, setImageAspectRatio] = useState<number>(4/5) // Default aspect ratio
   const [loadingAgentId, setLoadingAgentId] = useState<string | null>(null)
 
@@ -315,40 +313,8 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
     setImageAspectRatio(aspectRatio)
   }
 
-  // Swipe functionality
-  const minSwipeDistance = 30
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientX)
-  }
 
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX)
-  }
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return
-    
-    const distance = touchStart - touchEnd
-    const isLeftSwipe = distance > minSwipeDistance
-    const isRightSwipe = distance < -minSwipeDistance
-
-    // Calculate total valid images using resolver
-    const validImages = getAllImageUrls(property).filter(img => 
-      !img.includes('uze.png') && !img.includes('/icons/')
-    );
-    const totalImages = validImages.length;
-
-    if (isLeftSwipe) {
-      // Swipe left - go to next image
-      handleImageChange(selectedImage < totalImages - 1 ? selectedImage + 1 : 0)
-    }
-    if (isRightSwipe) {
-      // Swipe right - go to previous image
-      handleImageChange(selectedImage > 0 ? selectedImage - 1 : totalImages - 1)
-    }
-  }
 
   return (
     <div className="fixed inset-0 z-50 bg-white overflow-y-auto opacity-0 animate-fadeIn">
