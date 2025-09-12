@@ -6,14 +6,15 @@ export interface IProperty extends Document {
   location: string;
   district: string; // Add district field
   price: number;
-  beds: number;
-  baths: number;
-  sqft: number;
+  beds?: number;
+  baths?: number;
+  sqft?: number;
   yearBuilt: number;
   lotSize: number;
   propertyType: string;
   status: string;
   listingType: string;
+  documentType?: string;
   measurement?: string;
   description: string;
   features: string[];
