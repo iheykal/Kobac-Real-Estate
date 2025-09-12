@@ -369,8 +369,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('📦 Request body:', body);
     
-    // Validate required fields
-    const requiredFields = ['title', 'description', 'price', 'location', 'district', 'bedrooms', 'bathrooms'];
+    // Validate required fields based on listing type
+    const baseRequiredFields = ['title', 'description', 'price', 'location', 'district'];
+    const rentRequiredFields = ['bedrooms', 'bathrooms'];
+    
+    // For rent properties, require bedrooms and bathrooms
+    // For sale properties, bedrooms and bathrooms are optional
+    const requiredFields = body.listingType === 'rent' 
+      ? [...baseRequiredFields, ...rentRequiredFields]
+      : baseRequiredFields;
+    
     const missingFields = requiredFields.filter(field => !body[field]);
     
     if (missingFields.length > 0) {
