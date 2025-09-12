@@ -113,13 +113,15 @@ const PropertySchema: Schema = new Schema({
   },
   beds: {
     type: Number,
-    required: true,
-    min: 0
+    required: false,
+    min: 0,
+    default: 0
   },
   baths: {
     type: Number,
-    required: true,
-    min: 0
+    required: false,
+    min: 0,
+    default: 0
   },
   sqft: {
     type: Number,
