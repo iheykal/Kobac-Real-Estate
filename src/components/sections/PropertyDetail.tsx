@@ -1,3 +1,5 @@
+
+
 'use client'
 
 import React, { useState, useEffect } from 'react'
@@ -26,6 +28,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import { PropertyImageWithWatermarkFixed } from '@/components/ui/PropertyImageWithWatermarkFixed'
 import EnhancedImageGallery from '@/components/ui/EnhancedImageGallery'
+import { PropertyImageGallery } from '@/components/ui/FlexibleImage'
 import { PropertyRecommendations } from './PropertyRecommendations'
 import { formatPrice, formatPhoneNumber, formatListingDate, capitalizeName, DEFAULT_AVATAR_URL } from '@/lib/utils'
 import { getPrimaryImageUrl, getAllImageUrls } from '@/lib/imageUrlResolver'
@@ -326,21 +329,23 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               
-              {/* Left Side - Enhanced Property Images */}
+              {/* Left Side - Flexible Property Images */}
               <div className="space-y-6">
-                <EnhancedImageGallery
-                  property={property}
-                  className="w-full"
+                <PropertyImageGallery
+                  images={allImageUrls}
+                  altPrefix={property.title}
+                  aspectRatio="auto"
+                  objectFit="contain"
+                  enableZoom={true}
                   showThumbnails={true}
-                  showNavigation={true}
-                          showWatermark={true}
-                          watermarkPosition="center"
-                          watermarkSize="large"
-                  thumbnailSize="medium"
-                  thumbnailLayout="flexible"
-                  enableTouchGestures={true}
-                  enableKeyboardNavigation={true}
-                  maintainAspectRatio={true}
+                  autoPlay={false}
+                  watermark={{
+                    src: "/icons/header.png",
+                    position: "center",
+                    size: "large",
+                    opacity: 0.7
+                  }}
+                  containerClassName="w-full"
                 />
               </div>
               {/* Right Side - Property Details */}
