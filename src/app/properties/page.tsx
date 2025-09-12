@@ -434,8 +434,9 @@ function PropertiesContent() {
                           </>
                         )}
 
-                        {/* Beds and Baths - Only show for rent properties with valid values */}
-                        {property.status === 'For Rent' && property.beds > 0 && property.baths > 0 && (
+                        {/* Beds and Baths - Show for rent properties with valid values, or for sale properties if agent provided them */}
+                        {((property.status === 'For Rent' && property.beds > 0 && property.baths > 0) || 
+                          (property.status === 'For Sale' && property.beds > 0 && property.baths > 0)) && (
                           <>
                         <div className="text-center group/stat">
                           <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto mb-2 md:mb-3 group-hover/stat:scale-110 transition-transform duration-300">

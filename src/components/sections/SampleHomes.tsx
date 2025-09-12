@@ -891,38 +891,48 @@ export const SampleHomes: React.FC = () => {
                 </div>
 
                 {/* Stats Row */}
-                <div className={`flex items-center mb-6 ${property.status === 'For Sale' ? 'space-x-6' : 'space-x-8'}`}>
-                  {/* Bedrooms */}
-                  <div className="flex items-center space-x-2">
-                    <NextImage 
-                      src="/icons/bed.png" 
-                      alt="Bed" 
-                      width={24}
-                      height={24}
-                      className="w-7 h-7 object-contain"
-                      loading="lazy"
-                    />
-                    <div>
-                      <div className="text-xl font-bold text-slate-900">{property.beds}</div>
-                      <div className="text-slate-600 text-sm font-medium">Qol</div>
+                <div className={`flex items-center mb-6 ${
+                  property.status === 'For Sale' 
+                    ? (property.beds > 0 && property.baths > 0 ? 'space-x-6' : 'space-x-8')
+                    : 'space-x-8'
+                }`}>
+                  {/* Bedrooms - Show for rent properties with valid values, or for sale properties if agent provided them */}
+                  {((property.status === 'For Rent' && property.beds > 0 && property.baths > 0) || 
+                    (property.status === 'For Sale' && property.beds > 0 && property.baths > 0)) && (
+                    <div className="flex items-center space-x-2">
+                      <NextImage 
+                        src="/icons/bed.png" 
+                        alt="Bed" 
+                        width={24}
+                        height={24}
+                        className="w-7 h-7 object-contain"
+                        loading="lazy"
+                      />
+                      <div>
+                        <div className="text-xl font-bold text-slate-900">{property.beds}</div>
+                        <div className="text-slate-600 text-sm font-medium">Qol</div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
-                  {/* Bathrooms */}
-                  <div className="flex items-center space-x-2">
-                    <video 
-                      src="/icons/shower1.mp4" 
-                      autoPlay 
-                      loop 
-                      muted 
-                      playsInline
-                      className="w-7 h-7 object-contain"
-                    />
-                    <div>
-                      <div className="text-xl font-bold text-slate-900">{property.baths}</div>
-                      <div className="text-slate-600 text-sm font-medium">Suuli</div>
+                  {/* Bathrooms - Show for rent properties with valid values, or for sale properties if agent provided them */}
+                  {((property.status === 'For Rent' && property.beds > 0 && property.baths > 0) || 
+                    (property.status === 'For Sale' && property.beds > 0 && property.baths > 0)) && (
+                    <div className="flex items-center space-x-2">
+                      <video 
+                        src="/icons/shower1.mp4" 
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline
+                        className="w-7 h-7 object-contain"
+                      />
+                      <div>
+                        <div className="text-xl font-bold text-slate-900">{property.baths}</div>
+                        <div className="text-slate-600 text-sm font-medium">Suuli</div>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Measurement - Only show for properties for sale */}
                   {property.status === 'For Sale' && (

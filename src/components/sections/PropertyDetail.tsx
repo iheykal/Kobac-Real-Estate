@@ -415,8 +415,9 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
                     </div>
                   )}
                   
-                  {/* Beds and Baths - Only show for rent properties with valid values */}
-                  {property.status === 'For Rent' && property.beds > 0 && property.baths > 0 && (
+                  {/* Beds and Baths - Show for rent properties with valid values, or for sale properties if agent provided them */}
+                  {((property.status === 'For Rent' && property.beds > 0 && property.baths > 0) || 
+                    (property.status === 'For Sale' && property.beds > 0 && property.baths > 0)) && (
                     <>
                       <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
                         <div className="w-16 h-16 flex items-center justify-center mx-auto mb-2">

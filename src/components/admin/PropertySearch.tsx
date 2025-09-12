@@ -321,33 +321,46 @@ export default function PropertySearch() {
                 </div>
 
                 {/* Key Stats */}
-                <div className={`grid gap-4 ${property.status === 'For Sale' ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                  <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-                    <div className="w-16 h-16 flex items-center justify-center mx-auto mb-2">
-                      <img 
-                        src="/icons/bed.png" 
-                        alt="Bed" 
-                        className="w-8 h-8 object-contain"
-                      />
+                <div className={`grid gap-4 ${
+                  property.status === 'For Sale' 
+                    ? (property.beds > 0 && property.baths > 0 ? 'grid-cols-3' : 'grid-cols-2')
+                    : 'grid-cols-2'
+                }`}>
+                  {/* Bedrooms - Show for rent properties with valid values, or for sale properties if agent provided them */}
+                  {((property.status === 'For Rent' && property.beds > 0 && property.baths > 0) || 
+                    (property.status === 'For Sale' && property.beds > 0 && property.baths > 0)) && (
+                    <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+                      <div className="w-16 h-16 flex items-center justify-center mx-auto mb-2">
+                        <img 
+                          src="/icons/bed.png" 
+                          alt="Bed" 
+                          className="w-8 h-8 object-contain"
+                        />
+                      </div>
+                      <div className="text-xl font-bold text-slate-900">{property.beds}</div>
+                      <div className="text-sm text-slate-600">Qol</div>
                     </div>
-                    <div className="text-xl font-bold text-slate-900">{property.beds}</div>
-                    <div className="text-sm text-slate-600">Qol</div>
-                  </div>
-                  <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-                    <div className="w-20 h-20 flex items-center justify-center mx-auto mb-2">
-                      <video 
-                        src="/icons/shower1.mp4" 
-                        autoPlay 
-                        loop 
-                        muted 
-                        playsInline
-                        className="w-10 h-10 object-contain mix-blend-multiply"
-                        style={{ filter: 'contrast(1.2) brightness(1.1)' }}
-                      />
+                  )}
+                  
+                  {/* Bathrooms - Show for rent properties with valid values, or for sale properties if agent provided them */}
+                  {((property.status === 'For Rent' && property.beds > 0 && property.baths > 0) || 
+                    (property.status === 'For Sale' && property.beds > 0 && property.baths > 0)) && (
+                    <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+                      <div className="w-20 h-20 flex items-center justify-center mx-auto mb-2">
+                        <video 
+                          src="/icons/shower1.mp4" 
+                          autoPlay 
+                          loop 
+                          muted 
+                          playsInline
+                          className="w-10 h-10 object-contain mix-blend-multiply"
+                          style={{ filter: 'contrast(1.2) brightness(1.1)' }}
+                        />
+                      </div>
+                      <div className="text-xl font-bold text-slate-900">{property.baths}</div>
+                      <div className="text-sm text-slate-600">Suuli</div>
                     </div>
-                    <div className="text-xl font-bold text-slate-900">{property.baths}</div>
-                    <div className="text-sm text-slate-600">Suuli</div>
-                  </div>
+                  )}
                   
                   {/* Measurement - Only show for properties for sale */}
                   {property.status === 'For Sale' && (
