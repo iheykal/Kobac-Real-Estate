@@ -104,9 +104,19 @@ export async function convertToWebP(
   } catch (error) {
     console.error('Error converting image to WebP:', error);
     
+    // Enhanced error logging for debugging
+    const errorDetails = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      bufferSize: buffer?.length || 0,
+      options: { quality, width, height, fit, validateOutput, fallbackToOriginal }
+    };
+    
+    console.error('WebP conversion error details:', errorDetails);
+    
     // If fallback is enabled and we have a valid original buffer, return it
     if (fallbackToOriginal && buffer && buffer.length > 0) {
-      console.warn('Falling back to original image format due to WebP conversion error');
+      console.warn(`Falling back to original image format due to WebP conversion error: ${errorDetails.message}`);
       const timestamp = Date.now();
       const uuid = Math.random().toString(36).substring(2, 15);
       const filename = `${timestamp}-${uuid}.jpg`; // Default to jpg for fallback

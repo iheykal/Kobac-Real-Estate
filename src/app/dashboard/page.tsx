@@ -79,7 +79,7 @@ export default function DashboardPage() {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
       
-      const res = await fetch('/api/properties?limit=6', {
+      const res = await fetch('/api/properties?limit=20', {
         cache: 'force-cache',
         next: { revalidate: 300 },
         signal: controller.signal

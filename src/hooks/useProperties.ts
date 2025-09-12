@@ -67,6 +67,9 @@ export const useProperties = (featured?: boolean, filters?: FilterOptions) => {
       
       // Always ask for latest first so new uploads surface immediately
       params.append('sort', 'latest');
+      
+      // Request more properties - increase limit to show all properties
+      params.append('limit', '100'); // Increased from default 10 to 100
 
       const response = await fetch(`/api/properties?${params.toString()}`, {
         credentials: 'include'
