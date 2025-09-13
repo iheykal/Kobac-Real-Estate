@@ -6,6 +6,7 @@ import { Footer } from '@/components/layout/Footer'
 import { UserProvider } from '@/contexts/UserContext'
 import { ScrollToTopProvider } from '@/components/providers/ScrollToTopProvider'
 import { ScrollToTopButton } from '@/components/ui/ScrollToTopButton'
+import { ClientLayoutWrapper } from '@/components/providers/ClientLayoutWrapper'
 import GoogleAnalyticsComponent from '@/components/analytics/GoogleAnalytics'
 
 const inter = Inter({ 
@@ -52,15 +53,27 @@ export default function RootLayout({
 
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} ${cormorant.variable}`}>
+      <head>
+        {/* Only preload GA if ID is provided and not in development */}
+        {gaId && process.env.NODE_ENV === 'production' && (
+          <link
+            rel="preload"
+            href={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+            as="script"
+          />
+        )}
+      </head>
       <body className="font-sans antialiased bg-white text-primary-900">
         <UserProvider>
           <ScrollToTopProvider>
-            <Header />
-            <main>
-              {children}
-            </main>
-            <Footer />
-            <ScrollToTopButton />
+            <ClientLayoutWrapper>
+              <Header />
+              <main>
+                {children}
+              </main>
+              <Footer />
+              <ScrollToTopButton />
+            </ClientLayoutWrapper>
           </ScrollToTopProvider>
         </UserProvider>
         {gaId && <GoogleAnalyticsComponent gaId={gaId} />}

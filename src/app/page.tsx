@@ -38,8 +38,8 @@ export default function HomePage() {
       {/* Redirect Animation */}
       <RedirectAnimation {...animationProps} />
       
-      {/* Agent Dashboard Access Button */}
-      {isAuthenticated && user?.role === 'agent' && (
+      {/* Agent Dashboard Access Button - Only show when auth is loaded and user is agent */}
+      {!isLoading && isAuthenticated && user?.role === 'agent' && (
         <>
           {/* Desktop/Tablet Button - Positioned below header */}
           <div className="hidden sm:block fixed top-20 right-4 z-40">

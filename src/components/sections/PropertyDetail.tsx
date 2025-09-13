@@ -156,7 +156,6 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClos
       propertyId: property.propertyId || property._id,
       thumbnailImage: property.thumbnailImage,
       images: property.images,
-      image: property.image,
       thumbnailImageType: typeof property.thumbnailImage,
       imagesType: typeof property.images,
       imagesLength: property.images?.length,

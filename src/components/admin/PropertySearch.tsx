@@ -38,6 +38,7 @@ interface Property {
   propertyType: string
   status: string
   listingType: string
+  documentType?: string
   measurement?: string
   description: string
   features: string[]

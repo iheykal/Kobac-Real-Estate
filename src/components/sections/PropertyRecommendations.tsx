@@ -32,6 +32,8 @@ interface RecommendedProperty {
   lotSize: number
   propertyType: string
   status: string
+  documentType?: string
+  measurement?: string
   description: string
   features: string[]
   amenities: string[]

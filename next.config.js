@@ -80,8 +80,8 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   
-  // Ensure proper output for Render deployment
-  output: 'standalone',
+  // Ensure proper output for Render deployment (only in production)
+  ...(process.env.NODE_ENV === 'production' && { output: 'standalone' }),
 }
 
 module.exports = nextConfig

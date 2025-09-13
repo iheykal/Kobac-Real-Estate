@@ -410,7 +410,7 @@ function PropertiesContent() {
                                   className="w-9 h-9 md:w-11 md:h-11 object-contain"
                                 />
                               </div>
-                              <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.measurement || 'N/A'}</div>
+                              <div className="text-lg md:text-2xl font-bold text-slate-900 mb-1">{property.sqft ? `${property.sqft} sqft` : 'N/A'}</div>
                               <div className="text-blue-800 text-xs md:text-sm font-medium">Cabbirka</div>
                             </div>
                           </>

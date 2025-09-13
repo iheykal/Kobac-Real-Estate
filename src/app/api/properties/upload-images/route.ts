@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
 
     // Test URL generation before processing files
     const testKey = 'test-key';
-    let testUrl: string;
+    let testUrl: string = '';
     try {
       if (publicBase && publicBase.trim() !== '') {
         const cleanPublicBase = publicBase.replace(/\/$/, '').trim();
@@ -280,7 +280,7 @@ export async function POST(req: NextRequest) {
         console.log('✅ File uploaded to R2 successfully:', key);
 
         // Generate correct R2 public URL format: https://bucket-name.r2.dev/key
-        let url: string;
+        let url: string = '';
         
         console.log('📸 Starting URL generation for key:', key);
         console.log('📸 URL generation inputs:', {

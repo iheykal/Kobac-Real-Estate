@@ -825,7 +825,7 @@ export default function AgentDashboard() {
       if (response.ok) {
         alert('Property deletion requested successfully! It has been hidden from your dashboard and public view, and will be reviewed by admin.')
         setShowDeleteModal(false)
-        setEditData({ id: '', title: '', description: '' })
+        setEditData({ id: '', title: '', description: '', thumbnailImage: null, additionalImages: [] })
         fetchAgentProperties(user!.id)
         // Re-fetch total views after successful deletion request
         fetchAgentTotalViews(user!.id)
@@ -1436,7 +1436,9 @@ export default function AgentDashboard() {
                             setEditData({
                               id: property.id,
                               title: property.title,
-                              description: property.description
+                              description: property.description,
+                              thumbnailImage: null,
+                              additionalImages: []
                             })
                             setShowEditModal(true)
                           }}
@@ -1447,7 +1449,7 @@ export default function AgentDashboard() {
                         </button>
                         <button
                           onClick={() => {
-                            setEditData({ id: property.id, title: property.title, description: property.description })
+                            setEditData({ id: property.id, title: property.title, description: property.description, thumbnailImage: null, additionalImages: [] })
                             setShowDeleteModal(true)
                           }}
                           className="flex-1 px-4 py-3 rounded-2xl text-sm font-semibold flex items-center justify-center space-x-2 transition-all duration-300 bg-red-50 text-red-700 hover:bg-red-100 hover:shadow-md group"

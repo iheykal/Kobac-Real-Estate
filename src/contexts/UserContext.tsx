@@ -61,11 +61,11 @@ interface UserProviderProps {
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false) // Start with false to show content immediately
   const [hasLoggedOut, setHasLoggedOut] = useState(false)
   const [hasInitialized, setHasInitialized] = useState(false)
 
-  // Check for existing user session on mount
+  // Check for existing user session on mount (non-blocking)
   useEffect(() => {
     if (hasInitialized) {
       console.log('🔍 UserContext: Already initialized, skipping...')
@@ -75,7 +75,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const checkAuth = async () => {
       try {
         setHasInitialized(true)
-        console.log('🔍 UserContext: Starting authentication check...')
+        console.log('🔍 UserContext: Starting background authentication check...')
         console.log('🔍 UserContext: Current state - hasLoggedOut:', hasLoggedOut, 'hasInitialized:', hasInitialized)
         
         // Check if there's a logout flag cookie first
@@ -83,22 +83,30 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         if (logoutFlag) {
           console.log('🚪 Logout flag detected, skipping auto-login')
           setHasLoggedOut(true)
-          setIsLoading(false)
+          return
+        }
+
+        // Quick check: if no session cookies exist, skip auth check
+        const hasSessionCookie = document.cookie.includes('kobac_session') || document.cookie.includes('kobac_session_alt')
+        if (!hasSessionCookie) {
+          console.log('🚪 No session cookies found, skipping auth check')
           return
         }
 
         // If user has explicitly logged out, don't auto-restore
         if (hasLoggedOut) {
           console.log('🔍 UserContext: User has logged out, skipping auth check')
-          setIsLoading(false)
           return
         }
+
+        // Set loading only when we're actually checking auth
+        setIsLoading(true)
 
         // Check server session first with timeout
         console.log('🔍 UserContext: Checking server session...')
         const controller = new AbortController()
-        // Increase timeout for production deployments
-        const timeoutDuration = process.env.NODE_ENV === 'production' ? 10000 : 5000;
+        // Reduce timeout for faster fallback
+        const timeoutDuration = process.env.NODE_ENV === 'production' ? 3000 : 2000;
         const timeoutId = setTimeout(() => {
           console.log('⏰ UserContext: Auth check timeout, aborting request')
           controller.abort()
